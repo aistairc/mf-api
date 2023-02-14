@@ -1,0 +1,38 @@
+{% extends "_base.html" %}
+{% block title %}{{ super() }} {% trans %}SpatioTemporal Asset Catalog{% endtrans %} {% endblock %}
+{% block crumbs %}{{ super() }}
+/ <a href="./stac">{% trans %}SpatioTemporal Asset Catalog{% endtrans %}</a>
+{% endblock %}
+{% block body %}
+
+    <section id="identification">
+      <h4>{% trans %}STAC Version{% endtrans %}: {{ data['stac_version'] }}</h4>
+    </section>
+
+    <section id="collections">
+      <h2>Collections</h2>
+            <table class="table table-striped table-bordered">
+              <thead>
+              <tr>
+                <th>{% trans %}Name{% endtrans %}</th>
+                <th>{% trans %}Description{% endtrans %}</th>
+              </tr>
+              </thead>
+              <tbody>
+                {% for k, v in filter_dict_by_key_value(config['resources'], 'type', 'stac-collection').items() %}
+                <tr>
+                  <td data-label="name">
+                    <a  title="{{ v['title'] | striptags | truncate }}"
+                      href="{{ config['server']['url'] }}/stac/{{ k }}">
+                      <span>{{ v['title'] | striptags | truncate }}</span></a>
+                  </td>
+                  <td data-label="description">
+                    {{ v['description'] | striptags | truncate }}
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+    </section>
+
+{% endblock %}

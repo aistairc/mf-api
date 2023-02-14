@@ -1,0 +1,29 @@
+# Flask-based CORS setup
+flask_cors
+
+# Generate pydantic models from json schema
+datamodel-code-generator
+
+# testing
+pytest
+pytest-cov
+pytest-env
+coverage
+pyld
+
+# PEP8
+flake8
+
+# packaging/PyPI
+twine
+wheel
+
+# the packages below are used to handle HTTP/SSL
+# errors when uploading to PyPI (https://github.com/pypa/twine/issues/273)
+pyOpenSSL
+ndg-httpsclient
+pyasn1
+
+# Read the docs
+sphinx==3.0.1
+sphinx_rtd_theme

@@ -1,0 +1,4 @@
+aiofiles
+starlette
+uvicorn[standard]
+nest-asyncio

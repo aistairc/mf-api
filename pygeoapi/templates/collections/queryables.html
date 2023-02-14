@@ -1,0 +1,36 @@
+{% extends "_base.html" %}
+{% block title %}{{ super() }} {{ data['title'] }} {% endblock %}
+{% block crumbs %}{{ super() }}
+/ <a href="{{ data['collections_path'] }}">{% trans %}Collections{% endtrans %}</a>
+/ <a href="./{{ data['id'] }}">{{ data['title'] | truncate( 25 ) }}</a>
+/ <a href="./{{ data['id'] }}queryables">{% trans %}Queryables{% endtrans %}</a>
+{% endblock %}
+{% block body %}
+    <section id="collection">
+      <h1>{{ data['title'] }}</h1>
+      <p>{{ data['description'] }}</p>
+      <p>
+        {% for kw in data['keywords'] %}
+          <span class="badge text-bg-primary bg-primary">{{ kw }}</span>
+        {% endfor %}
+      </p>
+      <h3>{% trans %}Queryables{% endtrans %}</h3>
+      <ul>
+      {% for qname, qinfo in data['properties'].items() %}
+        {% if qname == 'geometry' %}
+        <li><a href="{{ qinfo['$ref'] }}">{{ qname }} </a></li>
+        {% else %}
+        <li>{{ qname }} (<code>{{ qinfo['type'] }}</code>)
+        {% if 'enum' in qinfo %}
+          <ul>
+          {% for value in qinfo['enum'] %}
+            <li><i>{{ value }}</i></li>
+          {% endfor %}
+          </ul>
+        {% endif %}
+        </li>
+        {% endif %}
+      {% endfor %}
+      </ul>
+    </section>
+{% endblock %}
