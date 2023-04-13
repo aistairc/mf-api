@@ -254,9 +254,7 @@ def collection_items_tgeometries(collection_id, item_id, tGeometry_id=None):
 
 @BLUEPRINT.route('/collections/<path:collection_id>/items/<item_id>/tProperties',
                  methods=['GET', 'POST'])
-@BLUEPRINT.route('/collections/<path:collection_id>/items/<item_id>/tProperties/<tProperty_id>',
-                 methods=['DELETE'])
-def collection_items_tproperties(collection_id, item_id, tProperty_id=None):
+def collection_items_tproperties(collection_id, item_id):
     """
     OGC API collections items endpoint
 
@@ -266,27 +264,34 @@ def collection_items_tproperties(collection_id, item_id, tProperty_id=None):
     :returns: HTTP response
     """
 
-    if tProperty_id is None:
-        if request.method == 'GET':  # list items
-            return get_response(
-                api_.get_collection_items_tProperty(request, collection_id, item_id))
-        elif request.method == 'POST':  # filter or manage items
-            return get_response(api_.manage_collection_item_tProperty(request, 'create',
-                                                collection_id, item_id))
+    if request.method == 'GET':  # list items
+        return get_response(
+            api_.get_collection_items_tProperty(request, collection_id, item_id))
+    elif request.method == 'POST':  # filter or manage items
+        return get_response(api_.manage_collection_item_tProperty(request, 'create',
+                                            collection_id, item_id))
 
-    # elif request.method == 'GET':
-    #     return get_response(
-    #         api_.manage_collection_item_tProperty(request, 'delete',
-    #                                     collection_id, item_id, tProperty_id))
-                    
-    # elif request.method == 'POST':
-    #     return get_response(
-    #         api_.manage_collection_item_tProperty(request, 'create',
-    #                                     collection_id, item_id, tProperty_id))                            
-    # elif request.method == 'DELETE':
-    #     return get_response(
-    #         api_.manage_collection_item_tProperty(request, 'delete',
-    #                                     collection_id, item_id, tProperty_id))
+@BLUEPRINT.route('/collections/<path:collection_id>/items/<item_id>/tProperties/<tProperty_id>',
+                 methods=['GET', 'POST', 'DELETE'])
+def collection_items_tproperties_values(collection_id, item_id, tProperty_id):
+    """
+    OGC API collections items endpoint
+
+    :param collection_id: collection identifier
+    :param item_id: item identifier
+
+    :returns: HTTP response
+    """
+
+    if request.method == 'GET':  # list items
+        return get_response(
+            api_.get_collection_items_tProperty_value(request, collection_id, item_id, tProperty_id))
+    elif request.method == 'POST':  # filter or manage items
+        return get_response(api_.manage_collection_item_tProperty_value(request, 'create',
+                                            collection_id, item_id, tProperty_id))        
+    elif request.method == 'DELETE':  # filter or manage items
+        return get_response(api_.manage_collection_item_tProperty(request, 'delete',
+                                            collection_id, item_id, tProperty_id))
 
 APP.register_blueprint(BLUEPRINT)
 

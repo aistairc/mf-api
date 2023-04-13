@@ -1,6 +1,3 @@
-# mf-api
-Data access interfaces for spatiotemporal datasets
-
 # System setup
 ## １．Database construction
 ###	Install Postgresql
