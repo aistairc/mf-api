@@ -29,8 +29,8 @@
 server:
     bind:
         host: 0.0.0.0
-        port: 5000
-    url: http://172.23.154.27:5000
+        port: 8085
+    url: http://localhost:8085
     mimetype: application/json; charset=UTF-8
     encoding: utf-8
     gzip: false
@@ -60,7 +60,7 @@ logging:
 metadata:
     identification:
         title:
-            en: Movingfeatures data server
+            en: MovingFeatures data server
         description:
             en: Access to data about moving features
         keywords:
@@ -68,6 +68,7 @@ metadata:
                 - geospatial
                 - data
                 - api
+                - movingfeatures
         keywords_type: theme
         terms_of_service: https://creativecommons.org/licenses/by/4.0/
         url: https://example.org
@@ -75,19 +76,19 @@ metadata:
         name: CC-BY 4.0 license
         url: https://creativecommons.org/licenses/by/4.0/
     provider:
-        name: Organization Name
-        url: https://pygeoapi.io    
+        name: AIST, AIRC
+        url: https://www.airc.aist.go.jp/en/
     contact:
-        name: Lastname, Firstname
-        position: Position Title
-        address: Mailing Address
-        city: City
-        stateorprovince: Administrative Area
-        postalcode: Zip or Postal Code
-        country: Country
+        name: KIM, Taehoon
+        position: Researcher
+        address: 2-4-7, Aomi, Koto-ku, Tokyo
+        city: Tokyo
+        stateorprovince: Tokyo
+        postalcode: 135-0064
+        country: Japan
         phone: +xx-xxx-xxx-xxxx
         fax: +xx-xxx-xxx-xxxx
-        email: you@example.org
+        email: kim.taehoon@aist.go.jp
         url: Contact URL
         hours: Mo-Fr 08:00-17:00
         instructions: During hours of service. Off on weekends.
