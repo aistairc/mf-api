@@ -15,3 +15,9 @@ scipy
 sodapy
 xarray
 zarr
+pymeos
+flask-cors
+SQLAlchemy
+GeoAlchemy2
+psycopg2-binary
+python-mobilitydb

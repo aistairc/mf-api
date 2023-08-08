@@ -1,26 +1,33 @@
-from mobilitydb.psycopg import register
-import psycopg2
-from pymeos import *
 import json
-from pygeoapi.provider.postgresql import PostgreSQLProvider
 import click
 import datetime
-
+import psycopg2
+from mobilitydb.psycopg import register
+from pymeos import *
+from pygeoapi.provider.postgresql import PostgreSQLProvider
 from pygeofilter.parsers.ecql import parse
-class ProcessData:
+
+class ProcessMobilityData:
     host = '127.0.0.1'
     port = 5432
-    db = 'mobility'
-    user = 'postgres'
-    password = 'postgres'
+    db = 'mobilitydb'
+    user = 'docker'
+    password = 'docker'
     connection = None
 
-    def __init__(self):  
+    def __init__(self, datasource=None):
         self.connection = None
+
+        if datasource is not None:
+            self.host = datasource['host']
+            self.port = int(datasource['port'])
+            self.db = datasource['dbname']
+            self.user = datasource['user']
+            self.password = datasource['password']
         
     def connect(self):        
         # Set the connection parameters to PostgreSQL
-        self.connection = psycopg2.connect(host=self.host, database=self.db, user=self.user, password=self.password)
+        self.connection = psycopg2.connect(host=self.host, database=self.db, user=self.user, password=self.password, port=self.port)
         self.connection.autocommit = True
         
         # Register MobilityDB data types
@@ -127,7 +134,7 @@ class ProcessData:
         select_query += " LIMIT " + str(limit) + " OFFSET " + str(offset)
         cursor.execute(select_query)
         rows = cursor.fetchall()
-        numberReturned = len(rows);
+        numberReturned = len(rows)
         return rows, numberMatched, numberReturned    
 
     def getFeature(self, collection_id, mfeature_id): 
