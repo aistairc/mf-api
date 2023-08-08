@@ -76,3 +76,5 @@ RUN \
 ADD . /pygeoapi
 RUN python3 setup-mf-api.py install
 RUN chmod +x /pygeoapi/build.sh
+RUN ./build.sh
+RUN chmod +x /pygeoapi/run.sh

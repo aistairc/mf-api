@@ -15,8 +15,9 @@ class ProcessMobilityData:
     password = 'docker'
     connection = None
 
-    def __init__(self, datasource):
+    def __init__(self, datasource=None):
         self.connection = None
+
         if datasource is not None:
             self.host = datasource['host']
             self.port = int(datasource['port'])

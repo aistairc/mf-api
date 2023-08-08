@@ -13,11 +13,3 @@ mkdir -p log
 cur=$PWD
 sed -i "0,/.*ogc_schemas_location.*/{s/.*ogc_schemas_location.*/        ogc_schemas_location: ${cur//\//\\/}\/schema/}" example-config.yml
 sed -i "0,/.*logfile.*/{s/.*logfile.*/    logfile: ${cur//\//\\/}\/log\/pygeoapi.log/}" example-config.yml
-
-set +e
-
-export PYGEOAPI_HOME=/pygeoapi
-export PYGEOAPI_CONFIG="${PYGEOAPI_HOME}/example-config.yml"
-export PYGEOAPI_OPENAPI="${PYGEOAPI_HOME}/example-openapi.yml"
-
-pygeoapi serve

@@ -658,8 +658,8 @@ class API:
         LOGGER.info('Process manager plugin loaded')
 
         # TODO: add movingfeatures datasource as database
-        self.datasource = self.config['datasource']
-        self.pd = ProcessMobilityData(self.datasource)
+        # self.datasource = self.config['datasource']
+        # self.pd = ProcessMobilityData(self.datasource)
     @gzip
     @pre_process
     @jsonldify
