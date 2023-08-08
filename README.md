@@ -5,7 +5,8 @@ OGC API - MovingFeatures Server (MF-API-Server)
 Docker Container
 ----------------
 
-> [!NOTE] To do lists
+> [!NOTE]  
+> To-do lists
 > * Need to improve with docker-compose with separate docker images (**MF-API-Server** and **MobilityDB**)
 > * Move the Docker image (t*imeocarina/mf-api-server*) in the Docker Hub to the official one (e.g., **ogc-mf/mf-api-server**)
 
