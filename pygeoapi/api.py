@@ -73,7 +73,7 @@ from pygeoapi.provider.tile import (ProviderTileNotFoundError,
                                     ProviderTileQueryError,
                                     ProviderTilesetIdNotFoundError)
 from pygeoapi.models.cql import CQLModel
-from pygeoapi.models.process_data import ProcessData
+from pygeoapi.models.process_data import ProcessMobilityData
 from pygeoapi.util import (dategetter, DATETIME_FORMAT,
                            filter_dict_by_key_value, get_provider_by_type,
                            get_provider_default, get_typed_value, JobStatus,
@@ -149,7 +149,7 @@ CONFORMANCE = {
     'edr': [
         'http://www.opengis.net/spec/ogcapi-edr-1/1.0/conf/core'
     ],
-    'AIST': [
+    'movingfeatures': [
         "http://www.opengis.net/spec/ogcapi-movingfeatures-1/1.0/conf/common",
         "http://www.opengis.net/spec/ogcapi-movingfeatures-1/1.0/conf/mf-collection",
         "http://www.opengis.net/spec/ogcapi-movingfeatures-1/1.0/conf/movingfeatures"
@@ -657,6 +657,9 @@ class API:
         self.manager = load_plugin('process_manager', manager_def)
         LOGGER.info('Process manager plugin loaded')
 
+        # TODO: add movingfeatures datasource as database
+        self.datasource = self.config['datasource']
+        self.pd = ProcessMobilityData(self.datasource)
     @gzip
     @pre_process
     @jsonldify
@@ -778,7 +781,7 @@ class API:
         if not request.is_valid():
             return self.get_format_exception(request)
 
-        conformance_list = CONFORMANCE['AIST']
+        conformance_list = CONFORMANCE['movingfeatures']
 
         conformance = {
             'conformsTo': list(set(conformance_list))
@@ -807,7 +810,7 @@ class API:
             return self.get_format_exception(request)
         headers = request.get_response_headers()
 
-        pd = ProcessData()
+        pd = ProcessMobilityData()
         fcm = {
             'collections': [],
             'links': []
@@ -908,7 +911,7 @@ class API:
         """
 
         headers = request.get_response_headers(SYSTEM_LOCALE)
-        pd = ProcessData()
+        pd = ProcessMobilityData()
         collection_id = str(dataset)
         if action in ['create', 'update']:
             data = request.data
@@ -993,7 +996,7 @@ class API:
 
         :returns: tuple of headers, status code, content
         """
-        pd = ProcessData()
+        pd = ProcessMobilityData()
         collection_id = str(dataset)
         if not request.is_valid():
             return self.get_format_exception(request)
@@ -1181,7 +1184,7 @@ class API:
         LOGGER.debug('bbox: {}'.format(bbox))
         LOGGER.debug('datetime: {}'.format(datetime_))
 
-        pd = ProcessData()
+        pd = ProcessMobilityData()
         content = {
             "type": "FeatureCollection",
             "features": [],
@@ -1323,7 +1326,7 @@ class API:
         # has been determined
         headers = request.get_response_headers(SYSTEM_LOCALE)
 
-        pd = ProcessData()
+        pd = ProcessMobilityData()
         excuted, collections = getListOfCollectionsId()
 
         if excuted == False:
@@ -1420,7 +1423,7 @@ class API:
         :returns: tuple of headers, status code, content
         """
 
-        pd = ProcessData()
+        pd = ProcessMobilityData()
         collection_id = str(dataset)
         mfeature_id = str(identifier)
         if not request.is_valid():
@@ -1600,7 +1603,7 @@ class API:
         LOGGER.debug('leaf: {}'.format(leaf_))
         LOGGER.debug('datetime: {}'.format(datetime_))
         
-        pd = ProcessData()
+        pd = ProcessMobilityData()
         content = {
             "type": "MovingGeometryCollection",
             "prisms": [],
@@ -1703,7 +1706,7 @@ class API:
         # has been determined
         headers = request.get_response_headers(SYSTEM_LOCALE)
 
-        pd = ProcessData()
+        pd = ProcessMobilityData()
         excuted, featureList = getListOfFeaturesId()
 
         if excuted == False:
@@ -1871,7 +1874,7 @@ class API:
         LOGGER.debug('limit: {}'.format(limit))
         LOGGER.debug('datetime: {}'.format(datetime_))
         
-        pd = ProcessData()
+        pd = ProcessMobilityData()
         content = {
             "temporalProperties": [],
             "links":[]
@@ -1948,7 +1951,7 @@ class API:
         # has been determined
         headers = request.get_response_headers(SYSTEM_LOCALE)
 
-        pd = ProcessData()
+        pd = ProcessMobilityData()
         excuted, featureList = getListOfFeaturesId()
 
         if excuted == False:
@@ -2126,7 +2129,7 @@ class API:
         LOGGER.debug('leaf: {}'.format(leaf_))
         LOGGER.debug('datetime: {}'.format(datetime_))
         
-        pd = ProcessData()
+        pd = ProcessMobilityData()
         content = {
             "temporalProperties": [],
             "links":[]
@@ -2202,7 +2205,7 @@ class API:
         # has been determined
         headers = request.get_response_headers(SYSTEM_LOCALE)
 
-        pd = ProcessData()
+        pd = ProcessMobilityData()
         excuted, tPropertyList = getListOftPropertiesName()
         if excuted == False:
             msg = str(tPropertyList)
@@ -2501,7 +2504,7 @@ def validate_datetime(datetime_=None) -> str:
     return datetime_
 
 def getListOfCollectionsId():  
-    pd = ProcessData()
+    pd = ProcessMobilityData()
     try:
         pd.connect()       
         rows = pd.getCollectionsList()
@@ -2516,7 +2519,7 @@ def getListOfCollectionsId():
 
 
 def getListOfFeaturesId():  
-    pd = ProcessData()
+    pd = ProcessMobilityData()
     try:
         pd.connect()       
         rows = pd.getFeaturesList()
@@ -2530,7 +2533,7 @@ def getListOfFeaturesId():
         pd.disconnect()
 
 def getListOftPropertiesName():  
-    pd = ProcessData()
+    pd = ProcessMobilityData()
     try:
         pd.connect()       
         rows = pd.gettPropertiesNameList()

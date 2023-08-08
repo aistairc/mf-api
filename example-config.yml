@@ -27,69 +27,76 @@
 # =================================================================
 
 server:
-    bind:
-        host: 0.0.0.0
-        port: 8085
-    url: http://localhost:8085
-    mimetype: application/json; charset=UTF-8
-    encoding: utf-8
-    gzip: false
-    languages:
-        # First language is the default language
-        - en-US
-        - fr-CA
-    cors: true
-    pretty_print: true
-    limit: 10
+  bind:
+    host: 0.0.0.0
+    port: 8085
+  url: http://localhost:8085
+  mimetype: application/json; charset=UTF-8
+  encoding: utf-8
+  gzip: false
+  languages:
+    # First language is the default language
+    - en-US
+    - fr-CA
+  cors: true
+  pretty_print: true
+  limit: 10
     # templates:
-      # path: /path/to/Jinja2/templates
-      # static: /path/to/static/folder # css/js/img
-    map:
-        url: https://tile.openstreetmap.org/{z}/{x}/{y}.png
-        attribution: '&copy; <a href="https://openstreetmap.org/copyright">OpenStreetMap contributors</a>'
-#    manager:
-#        name: TinyDB
-#        connection: /tmp/pygeoapi-process-manager.db
-#        output_dir: /tmp/
-        ogc_schemas_location: /etc/pygeoapi/pygeoapi/pygeoapi/schema
+    # path: /path/to/Jinja2/templates
+  # static: /path/to/static/folder # css/js/img
+  map:
+    url: https://tile.openstreetmap.org/{z}/{x}/{y}.png
+    attribution: '&copy; <a href="https://openstreetmap.org/copyright">OpenStreetMap contributors</a>'
+    #    manager:
+    #        name: TinyDB
+    #        connection: /tmp/pygeoapi-process-manager.db
+    #        output_dir: /tmp/
+    ogc_schemas_location: /etc/pygeoapi/pygeoapi/pygeoapi/schema
 
 logging:
-    level: ERROR
-    logfile: /etc/pygeoapi/pygeoapi/pygeoapi/log/pygeoapi.log
+  level: ERROR
+  logfile: /etc/pygeoapi/pygeoapi/pygeoapi/log/pygeoapi.log
 
 metadata:
-    identification:
-        title:
-            en: MovingFeatures data server
-        description:
-            en: Access to data about moving features
-        keywords:
-            en:
-                - geospatial
-                - data
-                - api
-                - movingfeatures
-        keywords_type: theme
-        terms_of_service: https://creativecommons.org/licenses/by/4.0/
-        url: https://example.org
-    license:
-        name: CC-BY 4.0 license
-        url: https://creativecommons.org/licenses/by/4.0/
-    provider:
-        name: AIST, AIRC
-        url: https://www.airc.aist.go.jp/en/
-    contact:
-        name: KIM, Taehoon
-        position: Researcher
-        address: 2-4-7, Aomi, Koto-ku, Tokyo
-        city: Tokyo
-        stateorprovince: Tokyo
-        postalcode: 135-0064
-        country: Japan
-        phone: +xx-xxx-xxx-xxxx
-        fax: +xx-xxx-xxx-xxxx
-        email: kim.taehoon@aist.go.jp
-        url: Contact URL
-        hours: Mo-Fr 08:00-17:00
-        instructions: During hours of service. Off on weekends.
-        role: pointOfContact
+  identification:
+    title:
+      en: MovingFeatures data server
+    description:
+      en: Access to data about moving features
+    keywords:
+      en:
+        - geospatial
+        - data
+        - api
+        - movingfeatures
+    keywords_type: theme
+    terms_of_service: https://creativecommons.org/licenses/by/4.0/
+    url: https://example.org
+  license:
+    name: CC-BY 4.0 license
+    url: https://creativecommons.org/licenses/by/4.0/
+  provider:
+    name: AIST, AIRC
+    url: https://www.airc.aist.go.jp/en/
+  contact:
+    name: KIM, Taehoon
+    position: Researcher
+    address: 2-4-7, Aomi, Koto-ku, Tokyo
+    city: Tokyo
+    stateorprovince: Tokyo
+    postalcode: 135-0064
+    country: Japan
+    phone: +xx-xxx-xxx-xxxx
+    fax: +xx-xxx-xxx-xxxx
+    email: kim.taehoon@aist.go.jp
+    url: Contact URL
+    hours: Mo-Fr 08:00-17:00
+    instructions: During hours of service. Off on weekends.
+    role: pointOfContact
+
+datasource:
+  host: 127.0.0.1
+  dbname: mobilitydb
+  user: docker
+  password: docker
+  port: 5432
