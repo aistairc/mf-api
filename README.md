@@ -26,6 +26,9 @@ http://localhost:8085
 
 Building & Installation
 -----------------------
+<details>
+<summary> Detail instructions </summary>
+
 ## 1. Database construction
 ### 1-1) Install Postgresql
 - Create the file repository configuration:
@@ -363,5 +366,6 @@ pygeoapi serve
 
 - Run in another terminal and open homepage
 ```commandline
-curl http://localhost:8085  # Or open in web browser
+curl http://localhost:8085 # Or open in web browser
 ```
+</details>
