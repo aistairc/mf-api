@@ -4,7 +4,10 @@ OGC API - MovingFeatures Server (MF-API-Server)
 
 Docker Container
 ----------------
-[Note] Need to improve with docker-compose with separate docker images (**MF-API-Server** and **MobilityDB**) 
+
+> [!NOTE] To do lists
+> * Need to improve with docker-compose with separate docker images (**MF-API-Server** and **MobilityDB**)
+> * Move the Docker image (t*imeocarina/mf-api-server*) in the Docker Hub to the official one (e.g., **ogc-mf/mf-api-server**)
 
 Docker container with **MF-API-Server** is available [here](https://github.com/aistairc/mf-api/blob/main/Dockerfile).
 This image is based on the official **MobilityDB** docker image (14-3.2-1), please refer to [them](https://github.com/MobilityDB/MobilityDB-docker/blob/master/14-3.2-1/Dockerfile) for more information.
@@ -12,7 +15,7 @@ This image is based on the official **MobilityDB** docker image (14-3.2-1), plea
 If you have installed docker in your system, you can run MF-API-Server as below:
 ```commandline
 docker pull timeocarina/mf-api-server:latest
-docker run --name "mf-api-server" -p 8085:8085 -p 25432:5432
+docker run -p 8085:8085 -p 25432:5432 --name mf-api-server timeocarina/mf-api-server
 docker exec mf-api-server ./run.sh
 ```
 * The first command is to download the latest image of MF-API-Server.
@@ -33,12 +36,12 @@ Building & Installation
 ### 1-1) Install Postgresql
 - Create the file repository configuration:
 ```commandline
-$ sudo sh -c 'echo "deb http://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list'
+sudo sh -c 'echo "deb http://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list'
 ```
 
 - Import the repository signing key:
 ```commandline
-$ wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo apt-key add -
+wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo apt-key add -
 ```
 
 - Update the package lists:
