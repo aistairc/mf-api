@@ -1,22 +1,37 @@
 OGC API - MovingFeatures Server (MF-API-Server)
 ==========
+[MF-API-Server](https://github.com/aistairc/mf-api) is an open-source Python server implementation of the [OGC API – MovingFeatures](https://ogcapi.ogc.org/movingfeatures/) with [pygeoapi](https://github.com/geopython/pygeoapi) and [MobilityDB](https://github.com/MobilityDB/MobilityDB). 
 
+[OGC API – MovingFeatures](https://ogcapi.ogc.org/movingfeatures/) (OGC API–MF) provides a uniform way to access, communicate, and manage data about moving features across different applications, data providers, and data consumers. It includes operations for filtering, sorting, and aggregating moving feature data based on location, time, and other properties. MF-API-Server implements a standard interface which is defined in the OGC API – MovingFeatures – Part 1:Core. The summary of the supported API is described in the below table. 
+
+| URL Path                                               | Supported HTTP(s) Methods |
+|--------------------------------------------------------|---------------------------|
+| /                                                      | GET                       |
+| /api                                                   | GET                       |
+| /conformance                                           | GET                       |
+| /collections                                           | GET,POST                  |
+| /collections/{cid}                                     | GET,DELETE,PUT            |
+| /collections/{cid}/items                               | GET,POST                  |
+| /collections/{cid}/items/{mf_id}                       | GET,DELETE                |
+| /collections/{cid}/items/{mf_id}/tgeometries           | GET,POST                  |
+| /collections/{cid}/items/{mf_id}/tgeometries/{tg_id}   | DELETE                    |
+| /collections/{cid}/items/{mf_id}/tproperties           | GET,POST                  |
+| /collections/{cid}/items/{mf_id}/tproperties/{tp_name} | GET,POST                  |
+
+The implementation of MF-API-Server is basically a modification and extension of [pygeoapi](https://github.com/geopython/pygeoapi). The basic idea is to modify the minimum amount of code that needs to be modified (_flask_app.py and api.py_) based on the scenario of supporting OGC API–MF using Swagger UI in pygeoapi. In addition, we added and modified code (_process_data.py and postgresql.py_) to store and query web resources defined in the OGC API–MF using [MobilityDB](https://github.com/MobilityDB/MobilityDB). The overall flow of the process is shown in the figure below. 
+
+![mf-api-server](https://github.com/aistairc/mf-api/assets/10336074/67cc1071-918a-41c7-a76d-36f7f147c0c4)
 
 Docker Container
 ----------------
 
-> [!NOTE]  
-> To-do lists
-> * Need to improve with docker-compose with separate docker images (**MF-API-Server** and **MobilityDB**)
-> * Move the Docker image (t*imeocarina/mf-api-server*) in the Docker Hub to the official one (e.g., **ogc-mf/mf-api-server**)
-
 Docker container with **MF-API-Server** is available [here](https://github.com/aistairc/mf-api/blob/main/Dockerfile).
-This image is based on the official **MobilityDB** docker image (14-3.2-1), please refer to [them](https://github.com/MobilityDB/MobilityDB-docker/blob/master/14-3.2-1/Dockerfile) for more information.
+This image is based on the official **MobilityDB** docker image (Tag:14-3.2-1), please refer to [them](https://hub.docker.com/r/mobilitydb/mobilitydb) for more information.
 
 If you have installed docker in your system, you can run MF-API-Server as below:
 ```commandline
 docker pull timeocarina/mf-api-server:latest
-docker run -p 8085:8085 -p 25432:5432 --name mf-api-server timeocarina/mf-api-server
+docker run -p 8085:8085 -p 25432:5432 -d --name mf-api-server timeocarina/mf-api-server
 docker exec mf-api-server ./run.sh
 ```
 * The first command is to download the latest image of MF-API-Server.
@@ -27,6 +42,11 @@ And then you can connect to the homepage with the below URL:
 ```djangourlpath
 http://localhost:8085
 ```
+
+> [!NOTE] 
+> To Do Lists
+> * Need to improve with docker-compose with separate docker images (**MF-API-Server** and **MobilityDB**)
+> * Move the Docker image (**timeocarina/mf-api-server**) in the GitHub Container Registry to the official one (e.g., **ogc-mf/mf-api-server**)
 
 Building & Installation
 -----------------------
