@@ -20,7 +20,7 @@ OGC API - MovingFeatures Server (MF-API-Server)
 
 The implementation of MF-API-Server is basically a modification and extension of [pygeoapi](https://github.com/geopython/pygeoapi). The basic idea is to modify the minimum amount of code that needs to be modified (_flask_app.py and api.py_) based on the scenario of supporting OGC API–MF using Swagger UI in pygeoapi. In addition, we added and modified code (_process_data.py and postgresql.py_) to store and query web resources defined in the OGC API–MF using [MobilityDB](https://github.com/MobilityDB/MobilityDB). The overall flow of the process is shown in the figure below. 
 
-![mf-api-server](https://github.com/aistairc/mf-api/assets/10336074/67cc1071-918a-41c7-a76d-36f7f147c0c4)
+![mf-api-server](https://github.com/aistairc/mf-api/assets/10336074/112d4e40-0af2-469f-9baa-d54e84188926)
 
 Docker Container
 ----------------
