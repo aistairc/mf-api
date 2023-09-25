@@ -30,8 +30,8 @@ This image is based on the official **MobilityDB** docker image (Tag:14-3.2-1), 
 
 If you have installed docker in your system, you can run MF-API Server as below:
 ```commandline
-docker pull timeocarina/mf-api-server:latest
-docker run -p 8085:8085 -p 25432:5432 -d --name mf-api-server timeocarina/mf-api-server
+docker pull ghcr.io/taehoonk/mf-api-server:1.0
+docker run -p 8085:8085 -p 25432:5432 -d --name mf-api-server ghcr.io/taehoonk/mf-api-server:1.0
 docker exec mf-api-server ./run.sh
 ```
 * The first command is to download the latest image of MF-API Server.
@@ -46,7 +46,6 @@ http://localhost:8085
 > [!NOTE] 
 > To Do Lists
 > * Need to improve with docker-compose with separate docker images (**MF-API-Server** and **MobilityDB**)
-> * Move the Docker image (**timeocarina/mf-api-server**) in the GitHub Container Registry to the official one (e.g., **ogc-mf/mf-api-server**)
 
 Building & Installation
 -----------------------
