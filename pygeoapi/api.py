@@ -858,13 +858,6 @@ class API:
                             crs = 'http://www.opengis.net/def/crs/OGC/1.3/CRS84'
             if crs is None:
                 crs = 'http://www.opengis.net/def/crs/OGC/1.3/CRS84'  
-            collection['extent'] = {
-                'spatial': {
-                    'bbox': bbox,
-                    'crs':crs
-                }
-            }
-
             if trs is None:
                 trs = 'http://www.opengis.net/def/uom/ISO-8601/0/Gregorian'
             
@@ -874,9 +867,15 @@ class API:
                 time.append(extent_properties_value.tmin.strftime("%Y/%m/%dT%H:%M:%SZ"))
                 time.append(extent_properties_value.tmax.strftime("%Y/%m/%dT%H:%M:%SZ"))
 
-            collection['temporal'] = {
-                'interval': time,
-                'trs': trs
+            collection['extent'] = {
+                'spatial': {
+                    'bbox': bbox,
+                    'crs': crs
+                },
+                'temporal': {
+                    'interval': time,
+                    'trs': trs
+                }
             }
 
             collection['links'] = []
@@ -1053,25 +1052,23 @@ class API:
                 
             if crs is None:
                 crs = 'http://www.opengis.net/def/crs/OGC/1.3/CRS84'
-            collection['extent'] = {
-                'spatial': {
-                    'bbox': bbox,
-                    'crs':crs
-                }
-            }
-
             if trs is None:
-                trs = 'http://www.opengis.net/def/uom/ISO-8601/0/Gregorian'            
+                trs = 'http://www.opengis.net/def/uom/ISO-8601/0/Gregorian'
 
             time = []
             extent_properties_value = row[3]
             if extent_properties_value is not None :
                 time.append(extent_properties_value.tmin.strftime("%Y/%m/%dT%H:%M:%SZ"))
                 time.append(extent_properties_value.tmax.strftime("%Y/%m/%dT%H:%M:%SZ"))
-
-            collection['temporal'] = {
-                'interval': time,
-                'trs':trs
+            collection['extent'] = {
+                'spatial': {
+                    'bbox': bbox,
+                    'crs': crs
+                },
+                'temporal': {
+                    'interval': time,
+                    'trs': trs
+                }
             }
 
             collection['links'] = []
