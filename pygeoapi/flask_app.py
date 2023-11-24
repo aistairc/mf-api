@@ -224,9 +224,9 @@ def collection_items(collection_id, item_id=None):
         return get_response(
             api_.get_collection_item(request, collection_id, item_id))
 
-@BLUEPRINT.route('/collections/<path:collection_id>/items/<item_id>/tGeometries',
+@BLUEPRINT.route('/collections/<path:collection_id>/items/<item_id>/tgsequence',
                  methods=['GET', 'POST'])
-@BLUEPRINT.route('/collections/<path:collection_id>/items/<item_id>/tGeometries/<tGeometry_id>',
+@BLUEPRINT.route('/collections/<path:collection_id>/items/<item_id>/tgsequence/<tGeometry_id>',
                  methods=['DELETE'])
 def collection_items_tgeometries(collection_id, item_id, tGeometry_id=None):
     """
