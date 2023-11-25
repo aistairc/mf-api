@@ -60,7 +60,7 @@ from shapely.wkt import loads as shapely_loads
 from pygeoapi import __version__, l10n
 from pygeoapi.formatter.base import FormatterSerializationError
 from pygeoapi.linked_data import (geojson2jsonld, jsonldify,
-                                  jsonldify_collection)
+                                jsonldify_collection)
 from pygeoapi.log import setup_logger
 from pygeoapi.process.base import ProcessorExecuteError
 from pygeoapi.plugin import load_plugin, PLUGINS
@@ -75,10 +75,10 @@ from pygeoapi.provider.tile import (ProviderTileNotFoundError,
 from pygeoapi.models.cql import CQLModel
 from pygeoapi.models.process_data import ProcessMobilityData
 from pygeoapi.util import (dategetter, DATETIME_FORMAT,
-                           filter_dict_by_key_value, get_provider_by_type,
-                           get_provider_default, get_typed_value, JobStatus,
-                           json_serial, render_j2_template, str2bool,
-                           TEMPLATES, to_json)
+                        filter_dict_by_key_value, get_provider_by_type,
+                        get_provider_default, get_typed_value, JobStatus,
+                        json_serial, render_j2_template, str2bool,
+                        TEMPLATES, to_json)
 import pymeos
 import click
 import psycopg2
@@ -839,7 +839,7 @@ class API:
                 trs = collection.pop('trs', None)
 
             bbox = []            
-            extend_stbox = row[2]
+            extend_stbox = row[3]
             if extend_stbox is not None :
                 bbox.append(extend_stbox.xmin)
                 bbox.append(extend_stbox.ymin)
@@ -860,12 +860,12 @@ class API:
                 crs = 'http://www.opengis.net/def/crs/OGC/1.3/CRS84'  
             if trs is None:
                 trs = 'http://www.opengis.net/def/uom/ISO-8601/0/Gregorian'
-            
+
             time = []
-            extent_properties_value = row[3]
-            if extent_properties_value is not None :
-                time.append(extent_properties_value.tmin.strftime("%Y/%m/%dT%H:%M:%SZ"))
-                time.append(extent_properties_value.tmax.strftime("%Y/%m/%dT%H:%M:%SZ"))
+            lifespan = row[2]
+            if lifespan is not None :
+                time.append(lifespan._lower.strftime("%Y/%m/%dT%H:%M:%SZ"))
+                time.append(lifespan._upper.strftime("%Y/%m/%dT%H:%M:%SZ"))
 
             collection['extent'] = {
                 'spatial': {
@@ -1032,7 +1032,7 @@ class API:
                 trs = collection.pop('trs', None)
 
             bbox = []            
-            extend_stbox = row[2]
+            extend_stbox = row[3]
             if extend_stbox is not None :
                 bbox.append(extend_stbox.xmin)
                 bbox.append(extend_stbox.ymin)
@@ -1056,10 +1056,11 @@ class API:
                 trs = 'http://www.opengis.net/def/uom/ISO-8601/0/Gregorian'
 
             time = []
-            extent_properties_value = row[3]
-            if extent_properties_value is not None :
-                time.append(extent_properties_value.tmin.strftime("%Y/%m/%dT%H:%M:%SZ"))
-                time.append(extent_properties_value.tmax.strftime("%Y/%m/%dT%H:%M:%SZ"))
+            lifespan = row[2]
+            if lifespan is not None :
+                time.append(lifespan._lower.strftime("%Y/%m/%dT%H:%M:%SZ"))
+                time.append(lifespan._upper.strftime("%Y/%m/%dT%H:%M:%SZ"))
+
             collection['extent'] = {
                 'spatial': {
                     'bbox': bbox,
@@ -1175,6 +1176,10 @@ class API:
             return self.get_exception(
                 400, headers, request.format, 'InvalidParameterValue', msg)
 
+        subTrajectory = request.params.get('subTrajectory')
+        if subTrajectory is None:
+            subTrajectory = False
+
         LOGGER.debug('Querying provider')
         LOGGER.debug('offset: {}'.format(offset))
         LOGGER.debug('limit: {}'.format(limit))
@@ -1190,9 +1195,9 @@ class API:
             "links":[]
         }
 
-        try:             
+        try:     
             pd.connect()    
-            rows, numberMatched, numberReturned = pd.getFeatures(collection_id=collection_id,bbox=bbox,datetime=datetime_,limit=limit,offset=offset)
+            rows, numberMatched, numberReturned = pd.getFeatures(collection_id=collection_id,bbox=bbox,datetime=datetime_,limit=limit,offset=offset,subTrajectory=subTrajectory)
         except (Exception, psycopg2.Error) as error:
             msg = str(error)
             return self.get_exception(
@@ -1201,12 +1206,23 @@ class API:
         mfeatures = []
         crs = None
         trs = None
-        for row in rows:
+
+        split_mfeature = {}
+        for i in range(len(rows)): 
+            mfeature_id = str(rows[i][1])
+            if mfeature_id not in split_mfeature:
+                split_mfeature[mfeature_id] = []
+            split_mfeature[mfeature_id].append(i)  
+
+        pymeos_initialize()   
+        for key, mfeature_row_index in split_mfeature.items(): 
+            row = rows[mfeature_row_index[0]]
+            
             mfeature_id = row[1]
             mfeature = row[3]
             mfeature['id'] = mfeature_id
             mfeature['type'] = 'Feature'
-            
+
             if 'crs' in mfeature and crs == None:
                 crs = mfeature['crs']
             if 'trs' in mfeature and trs == None:
@@ -1219,8 +1235,25 @@ class API:
 
             if 'properties' not in mfeature:
                 mfeature['properties'] = None
+
+            if subTrajectory == True or subTrajectory == "true":
+                prisms = []
+                for row_index in mfeature_row_index:
+                    row_tgeometory = rows[int(row_index)]                
+                    if row_tgeometory[7] is not None:
+                        mfeature_check = row_tgeometory[1]
+                        if mfeature_check == mfeature_id:
+                            temporalGeometry = json.loads(Temporal.as_mfjson(TGeomPointSeq(str(row_tgeometory[7]).replace("'","")),False))
+                            if 'crs' in temporalGeometry and crs == None:
+                                crs = temporalGeometry['crs']
+                            if 'trs' in temporalGeometry and trs == None:
+                                trs = temporalGeometry['trs']
+                            temporalGeometry = pd.convertTemporalGeometryToOldVersion(temporalGeometry)
+                            temporalGeometry['id'] = row_tgeometory[6]
+                            prisms.append(temporalGeometry)
+                mfeature['temporalGeometry'] = prisms
             bbox = []
-            extend_stbox = row[4]
+            extend_stbox = row[5]
             if extend_stbox is not None :
                 bbox.append(extend_stbox.xmin)
                 bbox.append(extend_stbox.ymin)
@@ -1233,10 +1266,10 @@ class API:
             mfeature['bbox'] = bbox
 
             time = []
-            extent_properties_value = row[5]
-            if extent_properties_value is not None :
-                time.append(extent_properties_value.tmin.strftime("%Y/%m/%dT%H:%M:%SZ"))
-                time.append(extent_properties_value.tmax.strftime("%Y/%m/%dT%H:%M:%SZ"))
+            lifespan = row[4]
+            if lifespan is not None :
+                time.append(lifespan._lower.strftime("%Y/%m/%dT%H:%M:%SZ"))
+                time.append(lifespan._upper.strftime("%Y/%m/%dT%H:%M:%SZ"))
             mfeature['time'] = time
 
             if 'crs' not in mfeature:
@@ -1453,7 +1486,7 @@ class API:
                 mfeature['geometry'] = json.loads(row[2])
             
             bbox = []
-            extend_stbox = row[4]
+            extend_stbox = row[5]
             if extend_stbox is not None :
                 bbox.append(extend_stbox.xmin)
                 bbox.append(extend_stbox.ymin)
@@ -1466,10 +1499,10 @@ class API:
             mfeature['bbox'] = bbox
 
             time = []
-            extent_properties_value = row[5]
-            if extent_properties_value is not None :
-                time.append(extent_properties_value.tmin.strftime("%Y/%m/%dT%H:%M:%SZ"))
-                time.append(extent_properties_value.tmax.strftime("%Y/%m/%dT%H:%M:%SZ"))
+            lifespan = row[4]
+            if lifespan is not None :
+                time.append(lifespan._lower.strftime("%Y/%m/%dT%H:%M:%SZ"))
+                time.append(lifespan._upper.strftime("%Y/%m/%dT%H:%M:%SZ"))
             mfeature['time'] = time
 
             if 'crs' not in mfeature:
@@ -1575,12 +1608,21 @@ class API:
                 return self.get_exception(
                     400, headers, request.format, 'InvalidParameterValue', msg)
 
+        leaf_ = request.params.get('leaf')       
         LOGGER.debug('Processing leaf parameter')
-        leaf_ = request.params.get('leaf')
         try:
             leaf_ = validate_leaf(leaf_)
         except ValueError as err:
             msg = str(err)
+            return self.get_exception(
+                400, headers, request.format, 'InvalidParameterValue', msg)
+
+        subTrajectory = request.params.get('subTrajectory')
+        if subTrajectory is None:
+            subTrajectory = False        
+
+        if (leaf_ != '' and leaf_ is not None) and (subTrajectory == True or subTrajectory == 'true'):
+            msg = 'Cannot use both parameter `subTrajectory` and `leaf` at the same time'
             return self.get_exception(
                 400, headers, request.format, 'InvalidParameterValue', msg)
 
@@ -1613,7 +1655,7 @@ class API:
         trs = None
         try:             
             pd.connect()
-            rows, numberMatched, numberReturned = pd.getTemporalGeometries(collection_id=collection_id,mfeature_id=mfeature_id,bbox=bbox,leaf=leaf_,datetime=datetime_,limit=limit,offset=offset)
+            rows, numberMatched, numberReturned = pd.getTemporalGeometries(collection_id=collection_id,mfeature_id=mfeature_id,bbox=bbox,leaf=leaf_,datetime=datetime_,limit=limit,offset=offset,subTrajectory=subTrajectory)
             pymeos_initialize()
             prisms = []
             for row in rows:   
@@ -1624,6 +1666,15 @@ class API:
                     trs = temporalGeometry['trs']
                 temporalGeometry = pd.convertTemporalGeometryToOldVersion(temporalGeometry)
                 temporalGeometry['id'] = row[2]
+
+                if (leaf_ != '' and leaf_ is not None) or (subTrajectory == True or subTrajectory == 'true'):
+                    if row[4] is not None:
+                        temporalGeometry_filter = json.loads(Temporal.as_mfjson(TGeomPointSeq(str(row[4]).replace("'","")),False))
+                        temporalGeometry['datetimes'] = temporalGeometry_filter['datetimes']
+                        temporalGeometry['coordinates'] = temporalGeometry_filter['coordinates']
+                    else:
+                        temporalGeometry['datetimes'] = []
+                        temporalGeometry['coordinates'] = []
                 prisms.append(temporalGeometry)
             content["prisms"] = prisms
         except (Exception, psycopg2.Error) as error:
@@ -1866,6 +1917,10 @@ class API:
             return self.get_exception(
                 400, headers, request.format, 'InvalidParameterValue', msg)
 
+        subTemporalValue = request.params.get('subTemporalValue')
+        if subTemporalValue is None:
+            subTemporalValue = False
+
         LOGGER.debug('Querying provider')
         LOGGER.debug('offset: {}'.format(offset))
         LOGGER.debug('limit: {}'.format(limit))
@@ -1879,13 +1934,38 @@ class API:
 
         try:              
             pd.connect()
-            rows, numberMatched, numberReturned = pd.getTemporalProperties(collection_id=collection_id,mfeature_id=mfeature_id,datetime=datetime_,limit=limit,offset=offset)
+            rows, numberMatched, numberReturned = pd.getTemporalProperties(collection_id=collection_id,mfeature_id=mfeature_id,datetime=datetime_,limit=limit,offset=offset,subTemporalValue=subTemporalValue)
             
             temporalProperties = []
-            for row in rows:    
-                temporalProperty = row[3]
-                temporalProperty['name'] = row[2]
-                temporalProperties.append(temporalProperty)
+            if subTemporalValue == False or subTemporalValue == "false":
+                for row in rows:    
+                    temporalProperty = row[3]
+                    temporalProperty['name'] = row[2]
+
+                    temporalProperties.append(temporalProperty)
+            else:                          
+                split_groups = {}
+                for i in range(len(rows)): 
+                    group_id = str(rows[i][4])                    
+                    if group_id not in split_groups:
+                        split_groups[group_id] = []
+                    split_groups[group_id].append(i)                
+                pymeos_initialize()  
+                for key, group_row_index in split_groups.items():  
+                    group = {}
+                    group["datetimes"] = []
+                    for row_index in group_row_index:
+                        row = rows[int(row_index)]
+                        tproperties_name = row[2]
+                        group[tproperties_name] = row[3] if row[3] is not None else {}
+                        if row[5] is not None or row[6] is not None:
+                            temporalPropertyValue = Temporal.as_mfjson(TFloatSeq(str(row[5]).replace("'","")), False) if row[5] != None else Temporal.as_mfjson(TTextSeq(str(row[6]).replace("'","")), False)
+                            temporalPropertyValue = pd.convertTemporalPropertyValueToBaseVersion(json.loads(temporalPropertyValue))
+                                    
+                            if 'datetimes' in temporalPropertyValue:
+                                group["datetimes"] = temporalPropertyValue.pop("datetimes", None) 
+                            group[tproperties_name].update(temporalPropertyValue)
+                    temporalProperties.append(group)
             content["temporalProperties"] = temporalProperties
         except (Exception, psycopg2.Error) as error:
             msg = str(error)
@@ -1997,11 +2077,17 @@ class API:
             
             LOGGER.debug('Creating item')
             try:
-                pd.connect()      
+                pd.connect()   
                 temporalProperties = data['temporalProperties']
                 temporalProperties = [temporalProperties] if not isinstance(temporalProperties, list) else temporalProperties
-                for temporalProperty in temporalProperties:
-                    tPropertiesName = pd.postTemporalProperties(collectionId, mfeature_id, temporalProperty)
+
+                canPost = pd.checkIfTemporalPropertyCanPost(collectionId, mfeature_id, temporalProperties) 
+
+                if canPost == True:
+                    for temporalProperty in temporalProperties:
+                        tPropertiesName = pd.postTemporalProperties(collectionId, mfeature_id, temporalProperty)
+                else :
+                    return headers, 400, ''
             except (Exception, psycopg2.Error) as error:
                 msg = str(error)
                 return self.get_exception(
@@ -2111,6 +2197,15 @@ class API:
             return self.get_exception(
                 400, headers, request.format, 'InvalidParameterValue', msg)
 
+        subTemporalValue = request.params.get('subTemporalValue')
+        if subTemporalValue is None:
+            subTemporalValue = False        
+
+        if (leaf_ != '' and leaf_ is not None) and (subTemporalValue == True or subTemporalValue == 'true'):
+            msg = 'Cannot use both parameter `subTemporalValue` and `leaf` at the same time'
+            return self.get_exception(
+                400, headers, request.format, 'InvalidParameterValue', msg)
+        
         LOGGER.debug('Processing datetime parameter')
         datetime_ = request.params.get('datetime')
         try:
@@ -2127,56 +2222,25 @@ class API:
         LOGGER.debug('datetime: {}'.format(datetime_))
         
         pd = ProcessMobilityData()
-        content = {
-            "temporalProperties": [],
-            "links":[]
-        }
+        content = {}
 
         try:              
             pd.connect()
-            rows, numberMatched, numberReturned = pd.getTemporalPropertiesValue(collection_id=collection_id,mfeature_id=mfeature_id,tProperty_name=tProperty_name, leaf=leaf_,datetime=datetime_,limit=limit,offset=offset)
+            rows = pd.getTemporalPropertiesValue(collection_id=collection_id,mfeature_id=mfeature_id,tProperty_name=tProperty_name, leaf=leaf_,datetime=datetime_,subTemporalValue=subTemporalValue)
             pymeos_initialize()
-            temporalProperties = []
-            for row in rows:    
-                temporalPropertyValue = Temporal.as_mfjson(TFloatSeq(str(row[4]).replace("'","")), False) if row[4] != None else Temporal.as_mfjson(TTextSeq(str(row[5]).replace("'","")), False)
-                temporalProperties.append(pd.convertTemporalPropertyValueToBaseVersion(json.loads(temporalPropertyValue)))
-            content["temporalProperties"] = temporalProperties
+            valueSequence = []
+            for row in rows: 
+                content = row[3]  
+                if row[5] is not None or row[6] is not None: 
+                    temporalPropertyValue = Temporal.as_mfjson(TFloatSeq(str(row[5]).replace("'","")), False) if row[5] != None else Temporal.as_mfjson(TTextSeq(str(row[6]).replace("'","")), False)
+                    valueSequence.append(pd.convertTemporalPropertyValueToBaseVersion(json.loads(temporalPropertyValue)))
+            content["valueSequence"] = valueSequence
         except (Exception, psycopg2.Error) as error:
             msg = str(error)
             return self.get_exception(
             400, headers, request.format, 'ConnectingError', msg) 
 
         # TODO: translate titles
-        uri = '{}/{}/items/{}/tProperties/{}'.format(self.get_collections_url(), collection_id, mfeature_id, tProperty_name)        
-
-        serialized_query_params = ''
-        for k, v in request.params.items():
-            if k not in ('f', 'offset'):
-                serialized_query_params += '&'
-                serialized_query_params += urllib.parse.quote(k, safe='')
-                serialized_query_params += '='
-                serialized_query_params += urllib.parse.quote(str(v), safe=',')
-
-        content['links'] = [{
-                'href': '{}?offset={}{}'.format(uri, offset, serialized_query_params),
-                'rel': request.get_linkrel(F_JSON),
-                'type': FORMAT_TYPES[F_JSON]
-            }]
-        
-        if len(content['temporalProperties']) == limit:
-            next_ = offset + limit
-            content['links'].append(
-                {
-                    'href': '{}?offset={}{}'.format( uri, next_, serialized_query_params),
-                    'type': 'application/geo+json',
-                    'rel': 'next',
-                })
-
-        content['timeStamp'] = datetime.utcnow().strftime(
-            '%Y-%m-%dT%H:%M:%S.%fZ')
-
-        content['numberMatched'] = numberMatched
-        content['numberReturned'] = numberReturned
         return headers, 200, to_json(content, self.pretty_print)
 
     @gzip
@@ -2251,11 +2315,11 @@ class API:
             LOGGER.debug('Creating item')
             try:
                 pd.connect()      
-                datetimes = data['datetimes']
-                values = data['values']
-                interpolation = data['interpolation']             
-                temporalValue = pd.createTemporalPropertyValue(datetimes, values, interpolation)
-                pValue_id = pd.postTemporalValue(collectionId, mfeature_id, tProperty_name, temporalValue)
+                canPost = pd.checkIfTemporalPropertyCanPost(collectionId, mfeature_id, [data], tProperty_name) 
+                if canPost == True:
+                    pValue_id = pd.postTemporalValue(collectionId, mfeature_id, tProperty_name, data)
+                else :
+                    return headers, 400, ''
             except (Exception, psycopg2.Error) as error:
                 msg = str(error)
                 return self.get_exception(
