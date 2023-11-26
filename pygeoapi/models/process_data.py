@@ -58,7 +58,7 @@ class ProcessMobilityData:
         select_query +="left outer join mfeature on collection.collection_id = mfeature.collection_id "
         select_query +="left outer join tgeometry on mfeature.collection_id = tgeometry.collection_id and mfeature.mfeature_id = tgeometry.mfeature_id "
         select_query +="group by collection.collection_id, collection.collection_property) collection "
-        
+
         cursor.execute(select_query)
         rows = cursor.fetchall()
         return rows 

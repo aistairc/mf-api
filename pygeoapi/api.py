@@ -843,8 +843,8 @@ class API:
             if extend_stbox is not None :
                 bbox.append(extend_stbox.xmin)
                 bbox.append(extend_stbox.ymin)
-                if extend_stbox.zmin is not None:
-                    bbox.append(extend_stbox.zmin)
+                if extend_stbox.zmax is not None:
+                    bbox.append(float(str(extend_stbox).split(",")[2]))
                 bbox.append(extend_stbox.xmax)
                 bbox.append(extend_stbox.ymax)
                 if extend_stbox.zmax is not None:
@@ -852,7 +852,7 @@ class API:
 
                 if crs is None:
                     if extend_stbox.srid == False or row[2].srid == 4326:
-                        if extend_stbox.zmin is not None:
+                        if extend_stbox.zmax is not None:
                             crs = 'http://www.opengis.net/def/crs/OGC/0/CRS84h'
                         else:                    
                             crs = 'http://www.opengis.net/def/crs/OGC/1.3/CRS84'
@@ -866,6 +866,11 @@ class API:
             if lifespan is not None :
                 time.append(lifespan._lower.strftime("%Y/%m/%dT%H:%M:%SZ"))
                 time.append(lifespan._upper.strftime("%Y/%m/%dT%H:%M:%SZ"))
+            else:
+                if extend_stbox is not None:
+                    if extend_stbox.tmin is not None:
+                        time.append(extend_stbox.tmin.strftime("%Y/%m/%dT%H:%M:%SZ"))
+                        time.append(extend_stbox.tmax.strftime("%Y/%m/%dT%H:%M:%SZ"))
 
             collection['extent'] = {
                 'spatial': {
@@ -1036,8 +1041,8 @@ class API:
             if extend_stbox is not None :
                 bbox.append(extend_stbox.xmin)
                 bbox.append(extend_stbox.ymin)
-                if extend_stbox.zmin is not None:
-                    bbox.append(extend_stbox.zmin)
+                if extend_stbox.zmax is not None:
+                    bbox.append(float(str(extend_stbox).split(",")[2]))
                 bbox.append(extend_stbox.xmax)
                 bbox.append(extend_stbox.ymax)
                 if extend_stbox.zmax is not None:
@@ -1045,7 +1050,7 @@ class API:
 
                 if crs is None:
                     if extend_stbox.srid == False or row[2].srid == 4326:
-                        if extend_stbox.zmin is not None:
+                        if extend_stbox.zmax is not None:
                             crs = 'http://www.opengis.net/def/crs/OGC/0/CRS84h'
                         else:                    
                             crs = 'http://www.opengis.net/def/crs/OGC/1.3/CRS84'
@@ -1060,6 +1065,11 @@ class API:
             if lifespan is not None :
                 time.append(lifespan._lower.strftime("%Y/%m/%dT%H:%M:%SZ"))
                 time.append(lifespan._upper.strftime("%Y/%m/%dT%H:%M:%SZ"))
+            else:
+                if extend_stbox is not None:
+                    if extend_stbox.tmin is not None:
+                        time.append(extend_stbox.tmin.strftime("%Y/%m/%dT%H:%M:%SZ"))
+                        time.append(extend_stbox.tmax.strftime("%Y/%m/%dT%H:%M:%SZ"))
 
             collection['extent'] = {
                 'spatial': {
@@ -1257,8 +1267,8 @@ class API:
             if extend_stbox is not None :
                 bbox.append(extend_stbox.xmin)
                 bbox.append(extend_stbox.ymin)
-                if extend_stbox.zmin is not None:
-                    bbox.append(extend_stbox.zmin)
+                if extend_stbox.zmax is not None:
+                    bbox.append(float(str(extend_stbox).split(",")[2]))
                 bbox.append(extend_stbox.xmax)
                 bbox.append(extend_stbox.ymax)
                 if extend_stbox.zmax is not None:
@@ -1270,6 +1280,11 @@ class API:
             if lifespan is not None :
                 time.append(lifespan._lower.strftime("%Y/%m/%dT%H:%M:%SZ"))
                 time.append(lifespan._upper.strftime("%Y/%m/%dT%H:%M:%SZ"))
+            else:
+                if extend_stbox is not None:
+                    if extend_stbox.tmin is not None:
+                        time.append(extend_stbox.tmin.strftime("%Y/%m/%dT%H:%M:%SZ"))
+                        time.append(extend_stbox.tmax.strftime("%Y/%m/%dT%H:%M:%SZ"))
             mfeature['time'] = time
 
             if 'crs' not in mfeature:
@@ -1407,6 +1422,11 @@ class API:
                 pd.connect()       
                 if data['type'] == 'FeatureCollection':
                     for feature in data['features']:
+                        if checkRequiredFieldFeature(feature) == False:
+                            # TODO not all processes require input
+                            msg = 'The required tag (e.g., type,temporalgeometry) is missing from the request data.'
+                            return self.get_exception(
+                                501, headers, request.format, 'MissingParameterValue', msg)
                         mfeature_id = pd.postMovingFeature(collectionId, feature)
                 else:
                     # for _ in range(10000):
@@ -1490,8 +1510,8 @@ class API:
             if extend_stbox is not None :
                 bbox.append(extend_stbox.xmin)
                 bbox.append(extend_stbox.ymin)
-                if extend_stbox.zmin is not None:
-                    bbox.append(extend_stbox.zmin)
+                if extend_stbox.zmax is not None:
+                    bbox.append(float(str(extend_stbox).split(",")[2]))
                 bbox.append(extend_stbox.xmax)
                 bbox.append(extend_stbox.ymax)
                 if extend_stbox.zmax is not None:
@@ -1503,6 +1523,11 @@ class API:
             if lifespan is not None :
                 time.append(lifespan._lower.strftime("%Y/%m/%dT%H:%M:%SZ"))
                 time.append(lifespan._upper.strftime("%Y/%m/%dT%H:%M:%SZ"))
+            else:
+                if extend_stbox is not None:
+                    if extend_stbox.tmin is not None:
+                        time.append(extend_stbox.tmin.strftime("%Y/%m/%dT%H:%M:%SZ"))
+                        time.append(extend_stbox.tmax.strftime("%Y/%m/%dT%H:%M:%SZ"))
             mfeature['time'] = time
 
             if 'crs' not in mfeature:
@@ -1644,8 +1669,8 @@ class API:
         
         pd = ProcessMobilityData()
         content = {
-            "type": "MovingGeometryCollection",
-            "prisms": [],
+            "type": "TemporalGeometrySequence",
+            "geometrySequence": [],
             "crs":{},
             "trs":{},
             "links":[],
@@ -1676,7 +1701,7 @@ class API:
                         temporalGeometry['datetimes'] = []
                         temporalGeometry['coordinates'] = []
                 prisms.append(temporalGeometry)
-            content["prisms"] = prisms
+            content["geometrySequence"] = prisms
         except (Exception, psycopg2.Error) as error:
             msg = str(error)
             return self.get_exception(
@@ -1715,7 +1740,7 @@ class API:
                 'type': FORMAT_TYPES[F_JSON]
             }]
         
-        if len(content['prisms']) == limit:
+        if len(content['geometrySequence']) == limit:
             next_ = offset + limit
             content['links'].append(
                 {
@@ -2608,8 +2633,10 @@ def getListOftPropertiesName():
         pd.disconnect()
 
 def checkRequiredFieldFeature(feature):
-    if ('type' not in feature
-        or 'temporalGeometry' not in feature):
+    if 'type' in feature:
+        if feature['type'] == 'FeatureCollection':
+            return True
+    if 'type' not in feature or 'temporalGeometry' not in feature:
         return False    
     if checkRequiredFieldTemporalGeometries(feature['temporalGeometry']) == False :
         return False    
