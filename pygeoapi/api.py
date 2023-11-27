@@ -1698,8 +1698,9 @@ class API:
                         temporalGeometry['datetimes'] = temporalGeometry_filter['datetimes']
                         temporalGeometry['coordinates'] = temporalGeometry_filter['coordinates']
                     else:
-                        temporalGeometry['datetimes'] = []
-                        temporalGeometry['coordinates'] = []
+                        continue
+                        # temporalGeometry['datetimes'] = []
+                        # temporalGeometry['coordinates'] = []
                 prisms.append(temporalGeometry)
             content["geometrySequence"] = prisms
         except (Exception, psycopg2.Error) as error:
@@ -1724,7 +1725,7 @@ class API:
             }
 
         # TODO: translate titles
-        uri = '{}/{}/items/{}/tGeometries'.format(self.get_collections_url(), collection_id, mfeature_id)        
+        uri = '{}/{}/items/{}/tgsequence'.format(self.get_collections_url(), collection_id, mfeature_id)
 
         serialized_query_params = ''
         for k, v in request.params.items():
@@ -1753,7 +1754,7 @@ class API:
             '%Y-%m-%dT%H:%M:%S.%fZ')
 
         content['numberMatched'] = numberMatched
-        content['numberReturned'] = numberReturned
+        content['numberReturned'] = len(content["geometrySequence"])
         return headers, 200, to_json(content, self.pretty_print)
 
     @gzip
@@ -1842,7 +1843,7 @@ class API:
             finally:
                 pd.disconnect() 
 
-            headers['Location'] = '{}/{}/items/{}/tGeometries/{}'.format(
+            headers['Location'] = '{}/{}/items/{}/tgsequence/{}'.format(
                 self.get_collections_url(), dataset, mfeature_id, tGeometry_id)
 
             return headers, 201, ''
