@@ -60,7 +60,7 @@ from shapely.wkt import loads as shapely_loads
 from pygeoapi import __version__, l10n
 from pygeoapi.formatter.base import FormatterSerializationError
 from pygeoapi.linked_data import (geojson2jsonld, jsonldify,
-                                jsonldify_collection)
+                                  jsonldify_collection)
 from pygeoapi.log import setup_logger
 from pygeoapi.process.base import ProcessorExecuteError
 from pygeoapi.plugin import load_plugin, PLUGINS
@@ -75,10 +75,10 @@ from pygeoapi.provider.tile import (ProviderTileNotFoundError,
 from pygeoapi.models.cql import CQLModel
 from pygeoapi.models.process_data import ProcessMobilityData
 from pygeoapi.util import (dategetter, DATETIME_FORMAT,
-                        filter_dict_by_key_value, get_provider_by_type,
-                        get_provider_default, get_typed_value, JobStatus,
-                        json_serial, render_j2_template, str2bool,
-                        TEMPLATES, to_json)
+                           filter_dict_by_key_value, get_provider_by_type,
+                           get_provider_default, get_typed_value, JobStatus,
+                           json_serial, render_j2_template, str2bool,
+                           TEMPLATES, to_json)
 import pymeos
 import click
 import psycopg2
@@ -141,7 +141,7 @@ CONFORMANCE = {
         'http://www.opengis.net/spec/ogcapi-records-1/1.0/conf/html'
     ],
     'process': [
-        'http://www.opengis.net/spec/ogcapi-processes-1/1.0/conf/ogc-process-description', # noqa
+        'http://www.opengis.net/spec/ogcapi-processes-1/1.0/conf/ogc-process-description',  # noqa
         'http://www.opengis.net/spec/ogcapi-processes-1/1.0/conf/core',
         'http://www.opengis.net/spec/ogcapi-processes-1/1.0/conf/json',
         'http://www.opengis.net/spec/ogcapi-processes-1/1.0/conf/oas30'
@@ -280,8 +280,9 @@ class APIRequest:
     :param request:             The web platform specific Request instance.
     :param supported_locales:   List or set of supported Locale instances.
     """
+
     def __init__(self, request, supported_locales):
-        
+
         # Set default request data
         self._data = b''
 
@@ -424,7 +425,7 @@ class APIRequest:
 
         # Format not specified: get from Accept headers (MIME types)
         # e.g. format_ = 'text/html'
-        h = headers.get('accept', headers.get('Accept', '')).strip() # noqa
+        h = headers.get('accept', headers.get('Accept', '')).strip()  # noqa
         (fmts, mimes) = zip(*FORMAT_TYPES.items())
         # basic support for complex types (i.e. with "q=0.x")
         for type_ in (t.split(';')[0].strip() for t in h.split(',') if t):
@@ -660,6 +661,7 @@ class API:
         # TODO: add movingfeatures datasource as database
         # self.datasource = self.config['datasource']
         # self.pd = ProcessMobilityData(self.datasource)
+
     @gzip
     @pre_process
     @jsonldify
@@ -689,21 +691,21 @@ class API:
 
         LOGGER.debug('Creating links')
         # TODO: put title text in config or translatable files?
-        fcm['links'] = [{            
+        fcm['links'] = [{
             'href': '{}/{}'.format(self.config['server']['url'], 'api'),
             'rel': 'alternate',
             'type': 'application/geo+json',
             'hreflang': 'en',
             'title': 'API definition',
             'length': 0
-        }, {            
+        }, {
             'href': '{}/{}'.format(self.config['server']['url'], 'conformance'),
             'rel': 'alternate',
             'type': 'application/geo+json',
             'hreflang': 'en',
             'title': 'conformance statements',
             'length': 0
-        }, {            
+        }, {
             'href': '{}'.format(self.get_collections_url()),
             'rel': 'alternate',
             'type': 'application/geo+json',
@@ -751,7 +753,7 @@ class API:
                 template = 'openapi/redoc.html'
 
             path = '/'.join([self.config['server']['url'].rstrip('/'),
-                            'openapi'])
+                             'openapi'])
             data = {
                 'openapi-document-path': path
             }
@@ -790,7 +792,7 @@ class API:
         headers = request.get_response_headers()
         if request.format == F_HTML:  # render
             content = render_j2_template(self.config, 'conformance.html',
-                                        conformance, request.locale)
+                                         conformance, request.locale)
             return headers, 200, content
 
         return headers, 200, to_json(conformance, self.pretty_print)
@@ -798,7 +800,7 @@ class API:
     @gzip
     @pre_process
     @jsonldify
-    def describe_collections(self, request: Union[APIRequest, Any]) -> Tuple[dict, int, str]: 
+    def describe_collections(self, request: Union[APIRequest, Any]) -> Tuple[dict, int, str]:
         """
         Queries collection
 
@@ -816,13 +818,13 @@ class API:
             'links': []
         }
 
-        try:              
-            pd.connect()   
-            rows = pd.getCollections() 
+        try:
+            pd.connect()
+            rows = pd.getCollections()
         except (Exception, psycopg2.Error) as error:
             msg = str(error)
             return self.get_exception(
-            400, headers, request.format, 'ConnectingError', msg) 
+                400, headers, request.format, 'ConnectingError', msg)
 
         collections = []
         for row in rows:
@@ -838,9 +840,9 @@ class API:
             if 'trs' in collection:
                 trs = collection.pop('trs', None)
 
-            bbox = []            
+            bbox = []
             extend_stbox = row[3]
-            if extend_stbox is not None :
+            if extend_stbox is not None:
                 bbox.append(extend_stbox.xmin)
                 bbox.append(extend_stbox.ymin)
                 if extend_stbox.zmax is not None:
@@ -854,16 +856,16 @@ class API:
                     if extend_stbox.srid == False or row[2].srid == 4326:
                         if extend_stbox.zmax is not None:
                             crs = 'http://www.opengis.net/def/crs/OGC/0/CRS84h'
-                        else:                    
+                        else:
                             crs = 'http://www.opengis.net/def/crs/OGC/1.3/CRS84'
             if crs is None:
-                crs = 'http://www.opengis.net/def/crs/OGC/1.3/CRS84'  
+                crs = 'http://www.opengis.net/def/crs/OGC/1.3/CRS84'
             if trs is None:
                 trs = 'http://www.opengis.net/def/uom/ISO-8601/0/Gregorian'
 
             time = []
             lifespan = row[2]
-            if lifespan is not None :
+            if lifespan is not None:
                 time.append(lifespan._lower.strftime("%Y/%m/%dT%H:%M:%SZ"))
                 time.append(lifespan._upper.strftime("%Y/%m/%dT%H:%M:%SZ"))
             else:
@@ -891,7 +893,7 @@ class API:
                 'type': FORMAT_TYPES[F_JSON]
             })
             collections.append(collection)
-        fcm['collections'] = collections        
+        fcm['collections'] = collections
         fcm['links'].append({
             'href': '{}'.format(
                 self.get_collections_url()),
@@ -903,8 +905,8 @@ class API:
     @gzip
     @pre_process
     @jsonldify
-    def manage_collection(self, request: Union[APIRequest, Any], 
-            action, dataset=None) -> Tuple[dict, int, str]:        
+    def manage_collection(self, request: Union[APIRequest, Any],
+                          action, dataset=None) -> Tuple[dict, int, str]:
         """
         Adds a collection
 
@@ -941,57 +943,57 @@ class API:
                 msg = 'invalid request data'
                 return self.get_exception(
                     400, headers, request.format, 'InvalidParameterValue', msg)
-            
-        if action == 'create':   
+
+        if action == 'create':
             try:
-                pd.connect()              
-                collection_id = pd.postCollection(data)            
+                pd.connect()
+                collection_id = pd.postCollection(data)
             except (Exception, psycopg2.Error) as error:
                 msg = str(error)
                 return self.get_exception(
-                400, headers, request.format, 'ConnectingError', msg)    
+                    400, headers, request.format, 'ConnectingError', msg)
             finally:
                 pd.disconnect()
-                
+
             url = '{}/{}'.format(self.get_collections_url(), collection_id)
 
-            headers['Location'] = url  
+            headers['Location'] = url
             return headers, 201, ''
-        
+
         if action == 'update':
-            LOGGER.debug('Updating item')   
+            LOGGER.debug('Updating item')
             try:
-                pd.connect()   
+                pd.connect()
                 pd.putCollection(collection_id, data)
             except (Exception, psycopg2.Error) as error:
                 msg = str(error)
                 return self.get_exception(
-                400, headers, request.format, 'ConnectingError', msg)    
+                    400, headers, request.format, 'ConnectingError', msg)
             finally:
                 pd.disconnect()
-            
+
             return headers, 204, ''
-        
+
         if action == 'delete':
             LOGGER.debug('Deleting item')
             try:
-                pd.connect()   
+                pd.connect()
                 pd.deleteCollection("AND collection_id ='{0}'".format(collection_id))
-                
+
             except (Exception, psycopg2.Error) as error:
                 msg = str(error)
                 return self.get_exception(
-                400, headers, request.format, 'ConnectingError', msg)    
+                    400, headers, request.format, 'ConnectingError', msg)
             finally:
                 pd.disconnect()
-            
+
             return headers, 204, ''
 
     @gzip
     @pre_process
     @jsonldify
-    def get_collection(self, request: Union[APIRequest, Any], 
-            dataset=None) -> Tuple[dict, int, str]:        
+    def get_collection(self, request: Union[APIRequest, Any],
+                       dataset=None) -> Tuple[dict, int, str]:
         """
         Queries collection
 
@@ -1006,29 +1008,28 @@ class API:
             return self.get_format_exception(request)
         headers = request.get_response_headers()
 
-        try:           
-            pd.connect()   
+        try:
+            pd.connect()
             rows = pd.getCollection(collection_id)
             if len(rows) > 0:
-                row = rows[0]        
-            else:                    
+                row = rows[0]
+            else:
                 msg = 'Collection not found'
                 LOGGER.error(msg)
                 return self.get_exception(
-                    404, headers, request.format, 'NotFound', msg)      
+                    404, headers, request.format, 'NotFound', msg)
         except (Exception, psycopg2.Error) as error:
             msg = str(error)
             return self.get_exception(
-            400, headers, request.format, 'ConnectingError', msg)
-    
+                400, headers, request.format, 'ConnectingError', msg)
 
         collection = {}
-        if row != None:       
+        if row != None:
             collection_id = row[0]
             collection = row[1]
-            collection['itemType'] = 'movingfeature'    
+            collection['itemType'] = 'movingfeature'
             collection['id'] = collection_id
-            
+
             crs = None
             trs = None
             if 'crs' in collection:
@@ -1036,9 +1037,9 @@ class API:
             if 'trs' in collection:
                 trs = collection.pop('trs', None)
 
-            bbox = []            
+            bbox = []
             extend_stbox = row[3]
-            if extend_stbox is not None :
+            if extend_stbox is not None:
                 bbox.append(extend_stbox.xmin)
                 bbox.append(extend_stbox.ymin)
                 if extend_stbox.zmax is not None:
@@ -1052,9 +1053,9 @@ class API:
                     if extend_stbox.srid == False or row[2].srid == 4326:
                         if extend_stbox.zmax is not None:
                             crs = 'http://www.opengis.net/def/crs/OGC/0/CRS84h'
-                        else:                    
+                        else:
                             crs = 'http://www.opengis.net/def/crs/OGC/1.3/CRS84'
-                
+
             if crs is None:
                 crs = 'http://www.opengis.net/def/crs/OGC/1.3/CRS84'
             if trs is None:
@@ -1062,7 +1063,7 @@ class API:
 
             time = []
             lifespan = row[2]
-            if lifespan is not None :
+            if lifespan is not None:
                 time.append(lifespan._lower.strftime("%Y/%m/%dT%H:%M:%SZ"))
                 time.append(lifespan._upper.strftime("%Y/%m/%dT%H:%M:%SZ"))
             else:
@@ -1107,7 +1108,7 @@ class API:
 
         # Set Content-Language to system locale until provider locale
         # has been determined
-        
+
         if not request.is_valid():
             return self.get_format_exception(request)
         headers = request.get_response_headers(SYSTEM_LOCALE)
@@ -1117,13 +1118,13 @@ class API:
         if excuted == False:
             msg = str(collections)
             return self.get_exception(
-            400, headers, request.format, 'ConnectingError', msg)   
+                400, headers, request.format, 'ConnectingError', msg)
 
         if collection_id not in collections:
             msg = 'Collection not found'
             LOGGER.error(msg)
             return self.get_exception(
-                404, headers, request.format, 'NotFound', msg)                
+                404, headers, request.format, 'NotFound', msg)
 
         LOGGER.debug('Processing query parameters')
 
@@ -1200,34 +1201,36 @@ class API:
         content = {
             "type": "FeatureCollection",
             "features": [],
-            "crs":{},
-            "trs":{},
-            "links":[]
+            "crs": {},
+            "trs": {},
+            "links": []
         }
 
-        try:     
-            pd.connect()    
-            rows, numberMatched, numberReturned = pd.getFeatures(collection_id=collection_id,bbox=bbox,datetime=datetime_,limit=limit,offset=offset,subTrajectory=subTrajectory)
+        try:
+            pd.connect()
+            rows, numberMatched, numberReturned = pd.getFeatures(collection_id=collection_id, bbox=bbox,
+                                                                 datetime=datetime_, limit=limit, offset=offset,
+                                                                 subTrajectory=subTrajectory)
         except (Exception, psycopg2.Error) as error:
             msg = str(error)
             return self.get_exception(
-            400, headers, request.format, 'ConnectingError', msg) 
+                400, headers, request.format, 'ConnectingError', msg)
 
         mfeatures = []
         crs = None
         trs = None
 
         split_mfeature = {}
-        for i in range(len(rows)): 
+        for i in range(len(rows)):
             mfeature_id = str(rows[i][1])
             if mfeature_id not in split_mfeature:
                 split_mfeature[mfeature_id] = []
-            split_mfeature[mfeature_id].append(i)  
+            split_mfeature[mfeature_id].append(i)
 
-        pymeos_initialize()   
-        for key, mfeature_row_index in split_mfeature.items(): 
+        pymeos_initialize()
+        for key, mfeature_row_index in split_mfeature.items():
             row = rows[mfeature_row_index[0]]
-            
+
             mfeature_id = row[1]
             mfeature = row[3]
             mfeature['id'] = mfeature_id
@@ -1239,7 +1242,7 @@ class API:
                 trs = mfeature['trs']
 
             if row[2] != None:
-                mfeature['geometry'] = json.loads(row[2]) 
+                mfeature['geometry'] = json.loads(row[2])
             else:
                 mfeature['geometry'] = None
 
@@ -1249,11 +1252,12 @@ class API:
             if subTrajectory == True or subTrajectory == "true":
                 prisms = []
                 for row_index in mfeature_row_index:
-                    row_tgeometory = rows[int(row_index)]                
+                    row_tgeometory = rows[int(row_index)]
                     if row_tgeometory[7] is not None:
                         mfeature_check = row_tgeometory[1]
                         if mfeature_check == mfeature_id:
-                            temporalGeometry = json.loads(Temporal.as_mfjson(TGeomPointSeq(str(row_tgeometory[7]).replace("'","")),False))
+                            temporalGeometry = json.loads(
+                                Temporal.as_mfjson(TGeomPointSeq(str(row_tgeometory[7]).replace("'", "")), False))
                             if 'crs' in temporalGeometry and crs == None:
                                 crs = temporalGeometry['crs']
                             if 'trs' in temporalGeometry and trs == None:
@@ -1264,7 +1268,7 @@ class API:
                 mfeature['temporalGeometry'] = prisms
             bbox = []
             extend_stbox = row[5]
-            if extend_stbox is not None :
+            if extend_stbox is not None:
                 bbox.append(extend_stbox.xmin)
                 bbox.append(extend_stbox.ymin)
                 if extend_stbox.zmax is not None:
@@ -1277,7 +1281,7 @@ class API:
 
             time = []
             lifespan = row[4]
-            if lifespan is not None :
+            if lifespan is not None:
                 time.append(lifespan._lower.strftime("%Y/%m/%dT%H:%M:%SZ"))
                 time.append(lifespan._upper.strftime("%Y/%m/%dT%H:%M:%SZ"))
             else:
@@ -1289,13 +1293,13 @@ class API:
 
             if 'crs' not in mfeature:
                 mfeature['crs'] = {
-                    "type":"Name",
-                    "properties":"urn:ogc:def:crs:OGC:1.3:CRS84"
+                    "type": "Name",
+                    "properties": "urn:ogc:def:crs:OGC:1.3:CRS84"
                 }
             if 'trs' not in mfeature:
                 mfeature['trs'] = {
-                    "type":"Name",
-                    "properties":"urn:ogc:data:time:iso8601"
+                    "type": "Name",
+                    "properties": "urn:ogc:data:time:iso8601"
                 }
             mfeatures.append(mfeature)
 
@@ -1304,21 +1308,20 @@ class API:
             content['crs'] = crs
         else:
             content['crs'] = {
-                "type":"Name",
-                "properties":"urn:ogc:def:crs:OGC:1.3:CRS84"
+                "type": "Name",
+                "properties": "urn:ogc:def:crs:OGC:1.3:CRS84"
             }
 
         if trs != None:
             content['trs'] = trs
         else:
             content['trs'] = {
-                "type":"Name",
-                "properties":"urn:ogc:data:time:iso8601"
+                "type": "Name",
+                "properties": "urn:ogc:data:time:iso8601"
             }
 
-
         # TODO: translate titles
-        uri = '{}/{}/items'.format(self.get_collections_url(), collection_id)       
+        uri = '{}/{}/items'.format(self.get_collections_url(), collection_id)
 
         serialized_query_params = ''
         for k, v in request.params.items():
@@ -1329,11 +1332,11 @@ class API:
                 serialized_query_params += urllib.parse.quote(str(v), safe=',')
 
         content['links'] = [{
-                'href': '{}?offset={}{}'.format(uri, offset, serialized_query_params),
-                'rel': request.get_linkrel(F_JSON),
-                'type': FORMAT_TYPES[F_JSON]
-            }]
-        
+            'href': '{}?offset={}{}'.format(uri, offset, serialized_query_params),
+            'rel': request.get_linkrel(F_JSON),
+            'type': FORMAT_TYPES[F_JSON]
+        }]
+
         if len(content['features']) == limit:
             next_ = offset + limit
             content['links'].append(
@@ -1377,7 +1380,7 @@ class API:
         if excuted == False:
             msg = str(collections)
             return self.get_exception(
-            400, headers, request.format, 'ConnectingError', msg)   
+                400, headers, request.format, 'ConnectingError', msg)
 
         if dataset not in collections:
             msg = 'Collection not found'
@@ -1393,7 +1396,7 @@ class API:
                 LOGGER.error(msg)
                 return self.get_exception(
                     400, headers, request.format, 'InvalidParameterValue', msg)
-            
+
             data = request.data
             try:
                 # Parse bytes data, if applicable
@@ -1410,7 +1413,7 @@ class API:
                 msg = 'invalid request data'
                 return self.get_exception(
                     400, headers, request.format, 'InvalidParameterValue', msg)
-            
+
             if checkRequiredFieldFeature(data) == False:
                 # TODO not all processes require input
                 msg = 'The required tag (e.g., type,temporalgeometry) is missing from the request data.'
@@ -1419,7 +1422,7 @@ class API:
 
             LOGGER.debug('Creating item')
             try:
-                pd.connect()       
+                pd.connect()
                 if data['type'] == 'FeatureCollection':
                     for feature in data['features']:
                         if checkRequiredFieldFeature(feature) == False:
@@ -1430,13 +1433,13 @@ class API:
                         mfeature_id = pd.postMovingFeature(collectionId, feature)
                 else:
                     # for _ in range(10000):
-                        mfeature_id = pd.postMovingFeature(collectionId, data)
+                    mfeature_id = pd.postMovingFeature(collectionId, data)
             except (Exception, psycopg2.Error) as error:
                 msg = str(error)
                 return self.get_exception(
-                400, headers, request.format, 'ConnectingError', msg)    
+                    400, headers, request.format, 'ConnectingError', msg)
             finally:
-                pd.disconnect() 
+                pd.disconnect()
 
             headers['Location'] = '{}/{}/items/{}'.format(
                 self.get_collections_url(), dataset, mfeature_id)
@@ -1447,16 +1450,16 @@ class API:
             LOGGER.debug('Deleting item')
 
             try:
-                pd.connect()   
+                pd.connect()
                 pd.deleteMovingFeature("AND mfeature_id ='{0}'".format(mfeature_id))
-                
+
             except (Exception, psycopg2.Error) as error:
                 msg = str(error)
                 return self.get_exception(
-                400, headers, request.format, 'ConnectingError', msg)    
+                    400, headers, request.format, 'ConnectingError', msg)
             finally:
                 pd.disconnect()
-            
+
             return headers, 204, ''
 
     @gzip
@@ -1480,34 +1483,34 @@ class API:
             return self.get_format_exception(request)
         headers = request.get_response_headers()
 
-        try:           
-            pd.connect()   
+        try:
+            pd.connect()
             rows = pd.getFeature(collection_id, mfeature_id)
             if len(rows) > 0:
-                row = rows[0]        
-            else:                    
+                row = rows[0]
+            else:
                 msg = 'Feature not found'
                 LOGGER.error(msg)
                 return self.get_exception(
-                    404, headers, request.format, 'NotFound', msg)      
+                    404, headers, request.format, 'NotFound', msg)
         except (Exception, psycopg2.Error) as error:
             msg = str(error)
             return self.get_exception(
-            400, headers, request.format, 'ConnectingError', msg) 
+                400, headers, request.format, 'ConnectingError', msg)
 
         mfeature = {}
-        if row != None:        
+        if row != None:
             mfeature_id = row[1]
             mfeature = row[3]
             mfeature['id'] = mfeature_id
             mfeature['type'] = 'Feature'
-            
+
             if row[2] != None:
                 mfeature['geometry'] = json.loads(row[2])
-            
+
             bbox = []
             extend_stbox = row[5]
-            if extend_stbox is not None :
+            if extend_stbox is not None:
                 bbox.append(extend_stbox.xmin)
                 bbox.append(extend_stbox.ymin)
                 if extend_stbox.zmax is not None:
@@ -1520,7 +1523,7 @@ class API:
 
             time = []
             lifespan = row[4]
-            if lifespan is not None :
+            if lifespan is not None:
                 time.append(lifespan._lower.strftime("%Y/%m/%dT%H:%M:%SZ"))
                 time.append(lifespan._upper.strftime("%Y/%m/%dT%H:%M:%SZ"))
             else:
@@ -1532,13 +1535,13 @@ class API:
 
             if 'crs' not in mfeature:
                 mfeature['crs'] = {
-                    "type":"Name",
-                    "properties":"urn:ogc:def:crs:OGC:1.3:CRS84"
+                    "type": "Name",
+                    "properties": "urn:ogc:def:crs:OGC:1.3:CRS84"
                 }
             if 'trs' not in mfeature:
                 mfeature['trs'] = {
-                    "type":"Name",
-                    "properties":"urn:ogc:data:time:iso8601"
+                    "type": "Name",
+                    "properties": "urn:ogc:data:time:iso8601"
                 }
             mfeature['links'] = []
             mfeature['links'].append({
@@ -1552,7 +1555,7 @@ class API:
     @gzip
     @pre_process
     def get_collection_items_tGeometry(self, request: Union[APIRequest, Any],
-                            dataset, identifier) -> Tuple[dict, int, str]:
+                                       dataset, identifier) -> Tuple[dict, int, str]:
         """
         Get temporal Geometry of collection item
 
@@ -1571,13 +1574,13 @@ class API:
         if excuted == False:
             msg = str(featureList)
             return self.get_exception(
-            400, headers, request.format, 'ConnectingError', msg)   
+                400, headers, request.format, 'ConnectingError', msg)
 
         if [dataset, identifier] not in featureList:
             msg = 'Feature not found'
             LOGGER.error(msg)
             return self.get_exception(
-                404, headers, request.format, 'NotFound', msg)           
+                404, headers, request.format, 'NotFound', msg)
 
         collection_id = dataset
         mfeature_id = identifier
@@ -1633,7 +1636,7 @@ class API:
                 return self.get_exception(
                     400, headers, request.format, 'InvalidParameterValue', msg)
 
-        leaf_ = request.params.get('leaf')       
+        leaf_ = request.params.get('leaf')
         LOGGER.debug('Processing leaf parameter')
         try:
             leaf_ = validate_leaf(leaf_)
@@ -1644,7 +1647,7 @@ class API:
 
         subTrajectory = request.params.get('subTrajectory')
         if subTrajectory is None:
-            subTrajectory = False        
+            subTrajectory = False
 
         if (leaf_ != '' and leaf_ is not None) and (subTrajectory == True or subTrajectory == 'true'):
             msg = 'Cannot use both parameter `subTrajectory` and `leaf` at the same time'
@@ -1666,25 +1669,28 @@ class API:
         LOGGER.debug('bbox: {}'.format(bbox))
         LOGGER.debug('leaf: {}'.format(leaf_))
         LOGGER.debug('datetime: {}'.format(datetime_))
-        
+
         pd = ProcessMobilityData()
         content = {
             "type": "TemporalGeometrySequence",
             "geometrySequence": [],
-            "crs":{},
-            "trs":{},
-            "links":[],
+            "crs": {},
+            "trs": {},
+            "links": [],
         }
 
         crs = None
         trs = None
-        try:             
+        try:
             pd.connect()
-            rows, numberMatched, numberReturned = pd.getTemporalGeometries(collection_id=collection_id,mfeature_id=mfeature_id,bbox=bbox,leaf=leaf_,datetime=datetime_,limit=limit,offset=offset,subTrajectory=subTrajectory)
+            rows, numberMatched, numberReturned = pd.getTemporalGeometries(collection_id=collection_id,
+                                                                           mfeature_id=mfeature_id, bbox=bbox,
+                                                                           leaf=leaf_, datetime=datetime_, limit=limit,
+                                                                           offset=offset, subTrajectory=subTrajectory)
             pymeos_initialize()
             prisms = []
-            for row in rows:   
-                temporalGeometry = json.loads(Temporal.as_mfjson(TGeomPointSeq(str(row[3]).replace("'","")),False))
+            for row in rows:
+                temporalGeometry = json.loads(Temporal.as_mfjson(TGeomPointSeq(str(row[3]).replace("'", "")), False))
                 if 'crs' in temporalGeometry and crs == None:
                     crs = temporalGeometry['crs']
                 if 'trs' in temporalGeometry and trs == None:
@@ -1694,7 +1700,8 @@ class API:
 
                 if (leaf_ != '' and leaf_ is not None) or (subTrajectory == True or subTrajectory == 'true'):
                     if row[4] is not None:
-                        temporalGeometry_filter = json.loads(Temporal.as_mfjson(TGeomPointSeq(str(row[4]).replace("'","")),False))
+                        temporalGeometry_filter = json.loads(
+                            Temporal.as_mfjson(TGeomPointSeq(str(row[4]).replace("'", "")), False))
                         temporalGeometry['datetimes'] = temporalGeometry_filter['datetimes']
                         temporalGeometry['coordinates'] = temporalGeometry_filter['coordinates']
                     else:
@@ -1706,22 +1713,22 @@ class API:
         except (Exception, psycopg2.Error) as error:
             msg = str(error)
             return self.get_exception(
-            400, headers, request.format, 'ConnectingError', msg) 
+                400, headers, request.format, 'ConnectingError', msg)
 
         if crs != None:
             content['crs'] = crs
         else:
             content['crs'] = {
-                "type":"Name",
-                "properties":"urn:ogc:def:crs:OGC:1.3:CRS84"
+                "type": "Name",
+                "properties": "urn:ogc:def:crs:OGC:1.3:CRS84"
             }
 
         if trs != None:
             content['trs'] = trs
         else:
             content['trs'] = {
-                "type":"Name",
-                "properties":"urn:ogc:data:time:iso8601"
+                "type": "Name",
+                "properties": "urn:ogc:data:time:iso8601"
             }
 
         # TODO: translate titles
@@ -1736,11 +1743,11 @@ class API:
                 serialized_query_params += urllib.parse.quote(str(v), safe=',')
 
         content['links'] = [{
-                'href': '{}?offset={}{}'.format(uri, offset, serialized_query_params),
-                'rel': request.get_linkrel(F_JSON),
-                'type': FORMAT_TYPES[F_JSON]
-            }]
-        
+            'href': '{}?offset={}{}'.format(uri, offset, serialized_query_params),
+            'rel': request.get_linkrel(F_JSON),
+            'type': FORMAT_TYPES[F_JSON]
+        }]
+
         if len(content['geometrySequence']) == limit:
             next_ = offset + limit
             content['links'].append(
@@ -1767,8 +1774,8 @@ class API:
 
         :param request: A request object
         :param dataset: dataset name
-        :param identifier: moving feature's id 
-        :param tGeometry: Temporal Geometry's id 
+        :param identifier: moving feature's id
+        :param tGeometry: Temporal Geometry's id
 
         :returns: tuple of headers, status code, content
         """
@@ -1786,7 +1793,7 @@ class API:
         if excuted == False:
             msg = str(featureList)
             return self.get_exception(
-            400, headers, request.format, 'ConnectingError', msg)   
+                400, headers, request.format, 'ConnectingError', msg)
 
         if [dataset, identifier] not in featureList:
             msg = 'Feature not found'
@@ -1803,7 +1810,7 @@ class API:
                 LOGGER.error(msg)
                 return self.get_exception(
                     400, headers, request.format, 'InvalidParameterValue', msg)
-            
+
             data = request.data
             try:
                 # Parse bytes data, if applicable
@@ -1820,28 +1827,28 @@ class API:
                 msg = 'invalid request data'
                 return self.get_exception(
                     400, headers, request.format, 'InvalidParameterValue', msg)
-            
+
             if checkRequiredFieldTemporalGeometries(data) == False:
                 # TODO not all processes require input
                 msg = 'The required tag (e.g., type,temporalgeometry) is missing from the request data.'
                 return self.get_exception(
                     501, headers, request.format, 'MissingParameterValue', msg)
-            
+
             LOGGER.debug('Creating item')
             try:
-                pd.connect()       
+                pd.connect()
                 if data['type'] == 'MovingGeometryCollection':
                     for tGeometry in data['prisms']:
                         tGeometry_id = pd.postTemporalGeometry(collectionId, mfeature_id, tGeometry)
-                    
+
                 else:
                     tGeometry_id = pd.postTemporalGeometry(collectionId, mfeature_id, data)
             except (Exception, psycopg2.Error) as error:
                 msg = str(error)
                 return self.get_exception(
-                400, headers, request.format, 'ConnectingError', msg)    
+                    400, headers, request.format, 'ConnectingError', msg)
             finally:
-                pd.disconnect() 
+                pd.disconnect()
 
             headers['Location'] = '{}/{}/items/{}/tgsequence/{}'.format(
                 self.get_collections_url(), dataset, mfeature_id, tGeometry_id)
@@ -1852,22 +1859,58 @@ class API:
             LOGGER.debug('Deleting item')
 
             try:
-                pd.connect()   
+                pd.connect()
                 pd.deleteTemporalGeometry("AND tgeometry_id ='{0}'".format(tGeometry_id))
-                
+
             except (Exception, psycopg2.Error) as error:
                 msg = str(error)
                 return self.get_exception(
-                400, headers, request.format, 'ConnectingError', msg)    
+                    400, headers, request.format, 'ConnectingError', msg)
             finally:
                 pd.disconnect()
-            
+
             return headers, 204, ''
 
     @gzip
     @pre_process
+    def get_collection_items_tGeometry_velocity(self, request: Union[APIRequest, Any], dataset, identifier,
+                                                tGeometry) -> Tuple[dict, int, str]:
+
+        headers = request.get_response_headers(SYSTEM_LOCALE)
+        datetime_ = request.params.get('date-time')
+        collection_id = str(dataset)
+        mfeature_id = str(identifier)
+        tgeometry_id = str(tGeometry)
+        pd = ProcessMobilityData()
+        pd.connect()
+        content = pd.get_velocity(collection_id, mfeature_id, tgeometry_id, datetime_)
+
+        pd.disconnect()
+
+        return headers, 200, content
+
+    @gzip
+    @pre_process
+    def get_collection_items_tGeometry_distance(self, request: Union[APIRequest, Any], dataset, identifier,
+                                                tGeometry) -> Tuple[dict, int, str]:
+
+        headers = request.get_response_headers(SYSTEM_LOCALE)
+        datetime_ = request.params.get('date-time')
+        collection_id = str(dataset)
+        mfeature_id = str(identifier)
+        tgeometry_id = str(tGeometry)
+        pd = ProcessMobilityData()
+        pd.connect()
+        content = pd.get_distance(collection_id, mfeature_id, tgeometry_id, datetime_)
+
+        pd.disconnect()
+
+        return headers, 200, content
+
+    @gzip
+    @pre_process
     def get_collection_items_tProperty(self, request: Union[APIRequest, Any],
-                            dataset, identifier) -> Tuple[dict, int, str]:
+                                       dataset, identifier) -> Tuple[dict, int, str]:
         """
         Get temporal Properties of collection item
 
@@ -1886,13 +1929,13 @@ class API:
         if excuted == False:
             msg = str(featureList)
             return self.get_exception(
-            400, headers, request.format, 'ConnectingError', msg)   
+                400, headers, request.format, 'ConnectingError', msg)
 
         if [dataset, identifier] not in featureList:
             msg = 'Feature not found'
             LOGGER.error(msg)
             return self.get_exception(
-                404, headers, request.format, 'NotFound', msg)           
+                404, headers, request.format, 'NotFound', msg)
 
         collection_id = dataset
         mfeature_id = identifier
@@ -1951,33 +1994,36 @@ class API:
         LOGGER.debug('offset: {}'.format(offset))
         LOGGER.debug('limit: {}'.format(limit))
         LOGGER.debug('datetime: {}'.format(datetime_))
-        
+
         pd = ProcessMobilityData()
         content = {
             "temporalProperties": [],
-            "links":[]
+            "links": []
         }
 
-        try:              
+        try:
             pd.connect()
-            rows, numberMatched, numberReturned = pd.getTemporalProperties(collection_id=collection_id,mfeature_id=mfeature_id,datetime=datetime_,limit=limit,offset=offset,subTemporalValue=subTemporalValue)
-            
+            rows, numberMatched, numberReturned = pd.getTemporalProperties(collection_id=collection_id,
+                                                                           mfeature_id=mfeature_id, datetime=datetime_,
+                                                                           limit=limit, offset=offset,
+                                                                           subTemporalValue=subTemporalValue)
+
             temporalProperties = []
             if subTemporalValue == False or subTemporalValue == "false":
-                for row in rows:    
+                for row in rows:
                     temporalProperty = row[3]
                     temporalProperty['name'] = row[2]
 
                     temporalProperties.append(temporalProperty)
-            else:                          
+            else:
                 split_groups = {}
-                for i in range(len(rows)): 
-                    group_id = str(rows[i][4])                    
+                for i in range(len(rows)):
+                    group_id = str(rows[i][4])
                     if group_id not in split_groups:
                         split_groups[group_id] = []
-                    split_groups[group_id].append(i)                
-                pymeos_initialize()  
-                for key, group_row_index in split_groups.items():  
+                    split_groups[group_id].append(i)
+                pymeos_initialize()
+                for key, group_row_index in split_groups.items():
                     group = {}
                     group["datetimes"] = []
                     for row_index in group_row_index:
@@ -1985,22 +2031,25 @@ class API:
                         tproperties_name = row[2]
                         group[tproperties_name] = row[3] if row[3] is not None else {}
                         if row[5] is not None or row[6] is not None:
-                            temporalPropertyValue = Temporal.as_mfjson(TFloatSeq(str(row[5]).replace("'","")), False) if row[5] != None else Temporal.as_mfjson(TTextSeq(str(row[6]).replace("'","")), False)
-                            temporalPropertyValue = pd.convertTemporalPropertyValueToBaseVersion(json.loads(temporalPropertyValue))
-                                    
+                            temporalPropertyValue = Temporal.as_mfjson(TFloatSeq(str(row[5]).replace("'", "")),
+                                                                       False) if row[5] != None else Temporal.as_mfjson(
+                                TTextSeq(str(row[6]).replace("'", "")), False)
+                            temporalPropertyValue = pd.convertTemporalPropertyValueToBaseVersion(
+                                json.loads(temporalPropertyValue))
+
                             if 'datetimes' in temporalPropertyValue:
-                                group["datetimes"] = temporalPropertyValue.pop("datetimes", None) 
+                                group["datetimes"] = temporalPropertyValue.pop("datetimes", None)
                             group[tproperties_name].update(temporalPropertyValue)
                     temporalProperties.append(group)
             content["temporalProperties"] = temporalProperties
         except (Exception, psycopg2.Error) as error:
             msg = str(error)
             return self.get_exception(
-            400, headers, request.format, 'ConnectingError', msg) 
+                400, headers, request.format, 'ConnectingError', msg)
 
-        # TODO: translate titles
-        uri = '{}/{}/items/{}/tProperties'.format(self.get_collections_url(), collection_id, mfeature_id)        
-        
+            # TODO: translate titles
+        uri = '{}/{}/items/{}/tProperties'.format(self.get_collections_url(), collection_id, mfeature_id)
+
         serialized_query_params = ''
         for k, v in request.params.items():
             if k not in ('f', 'offset'):
@@ -2010,16 +2059,16 @@ class API:
                 serialized_query_params += urllib.parse.quote(str(v), safe=',')
 
         content['links'] = [{
-                'href': '{}?offset={}{}'.format(uri, offset, serialized_query_params),
-                'rel': request.get_linkrel(F_JSON),
-                'type': FORMAT_TYPES[F_JSON]
-            }]
-        
+            'href': '{}?offset={}{}'.format(uri, offset, serialized_query_params),
+            'rel': request.get_linkrel(F_JSON),
+            'type': FORMAT_TYPES[F_JSON]
+        }]
+
         if len(content['temporalProperties']) == limit:
             next_ = offset + limit
             content['links'].append(
                 {
-                    'href': '{}?offset={}{}'.format( uri, next_, serialized_query_params),
+                    'href': '{}?offset={}{}'.format(uri, next_, serialized_query_params),
                     'type': 'application/geo+json',
                     'rel': 'next',
                 })
@@ -2041,8 +2090,8 @@ class API:
 
         :param request: A request object
         :param dataset: dataset name
-        :param identifier: moving feature's id 
-        :param tProperty: Temporal Property's id 
+        :param identifier: moving feature's id
+        :param tProperty: Temporal Property's id
 
         :returns: tuple of headers, status code, content
         """
@@ -2060,7 +2109,7 @@ class API:
         if excuted == False:
             msg = str(featureList)
             return self.get_exception(
-            400, headers, request.format, 'ConnectingError', msg)   
+                400, headers, request.format, 'ConnectingError', msg)
 
         if [dataset, identifier] not in featureList:
             msg = 'Feature not found'
@@ -2077,7 +2126,7 @@ class API:
                 LOGGER.error(msg)
                 return self.get_exception(
                     400, headers, request.format, 'InvalidParameterValue', msg)
-            
+
             data = request.data
             try:
                 # Parse bytes data, if applicable
@@ -2094,58 +2143,59 @@ class API:
                 msg = 'invalid request data'
                 return self.get_exception(
                     400, headers, request.format, 'InvalidParameterValue', msg)
-            
+
             if checkRequiredFieldTemporalProperties(data) == False:
                 # TODO not all processes require input
                 msg = 'The required tag (e.g., type,temporalgeometry) is missing from the request data.'
                 return self.get_exception(
                     501, headers, request.format, 'MissingParameterValue', msg)
-            
+
             LOGGER.debug('Creating item')
             try:
-                pd.connect()   
+                pd.connect()
                 temporalProperties = data['temporalProperties']
-                temporalProperties = [temporalProperties] if not isinstance(temporalProperties, list) else temporalProperties
+                temporalProperties = [temporalProperties] if not isinstance(temporalProperties,
+                                                                            list) else temporalProperties
 
-                canPost = pd.checkIfTemporalPropertyCanPost(collectionId, mfeature_id, temporalProperties) 
+                canPost = pd.checkIfTemporalPropertyCanPost(collectionId, mfeature_id, temporalProperties)
 
                 if canPost == True:
                     for temporalProperty in temporalProperties:
                         tPropertiesName = pd.postTemporalProperties(collectionId, mfeature_id, temporalProperty)
-                else :
+                else:
                     return headers, 400, ''
             except (Exception, psycopg2.Error) as error:
                 msg = str(error)
                 return self.get_exception(
-                400, headers, request.format, 'ConnectingError', msg)    
+                    400, headers, request.format, 'ConnectingError', msg)
             finally:
-                pd.disconnect() 
+                pd.disconnect()
 
             headers['Location'] = '{}/{}/items/{}/tProperties/{}'.format(
                 self.get_collections_url(), dataset, mfeature_id, tPropertiesName)
 
-            return headers, 201, ''      
-        
+            return headers, 201, ''
+
         if action == 'delete':
             LOGGER.debug('Deleting item')
 
             try:
-                pd.connect()   
+                pd.connect()
                 pd.deleteTemporalProperties("AND tproperties_name ='{0}'".format(tPropertiesName))
-                
+
             except (Exception, psycopg2.Error) as error:
                 msg = str(error)
                 return self.get_exception(
-                400, headers, request.format, 'ConnectingError', msg)    
+                    400, headers, request.format, 'ConnectingError', msg)
             finally:
                 pd.disconnect()
-            
+
             return headers, 204, ''
-        
+
     @gzip
     @pre_process
     def get_collection_items_tProperty_value(self, request: Union[APIRequest, Any],
-                            dataset, identifier, tProperty) -> Tuple[dict, int, str]:
+                                             dataset, identifier, tProperty) -> Tuple[dict, int, str]:
         """
         Get temporal Properties of collection item
 
@@ -2165,13 +2215,13 @@ class API:
         if excuted == False:
             msg = str(tPropertyList)
             return self.get_exception(
-            400, headers, request.format, 'ConnectingError', msg)   
+                400, headers, request.format, 'ConnectingError', msg)
 
         if [dataset, identifier, tProperty] not in tPropertyList:
             msg = 'Temporal Property not found'
             LOGGER.error(msg)
             return self.get_exception(
-                404, headers, request.format, 'NotFound', msg)     
+                404, headers, request.format, 'NotFound', msg)
 
         collection_id = dataset
         mfeature_id = identifier
@@ -2225,13 +2275,13 @@ class API:
 
         subTemporalValue = request.params.get('subTemporalValue')
         if subTemporalValue is None:
-            subTemporalValue = False        
+            subTemporalValue = False
 
         if (leaf_ != '' and leaf_ is not None) and (subTemporalValue == True or subTemporalValue == 'true'):
             msg = 'Cannot use both parameter `subTemporalValue` and `leaf` at the same time'
             return self.get_exception(
                 400, headers, request.format, 'InvalidParameterValue', msg)
-        
+
         LOGGER.debug('Processing datetime parameter')
         datetime_ = request.params.get('datetime')
         try:
@@ -2246,27 +2296,32 @@ class API:
         LOGGER.debug('limit: {}'.format(limit))
         LOGGER.debug('leaf: {}'.format(leaf_))
         LOGGER.debug('datetime: {}'.format(datetime_))
-        
+
         pd = ProcessMobilityData()
         content = {}
 
-        try:              
+        try:
             pd.connect()
-            rows = pd.getTemporalPropertiesValue(collection_id=collection_id,mfeature_id=mfeature_id,tProperty_name=tProperty_name, leaf=leaf_,datetime=datetime_,subTemporalValue=subTemporalValue)
+            rows = pd.getTemporalPropertiesValue(collection_id=collection_id, mfeature_id=mfeature_id,
+                                                 tProperty_name=tProperty_name, leaf=leaf_, datetime=datetime_,
+                                                 subTemporalValue=subTemporalValue)
             pymeos_initialize()
             valueSequence = []
-            for row in rows: 
-                content = row[3]  
-                if row[5] is not None or row[6] is not None: 
-                    temporalPropertyValue = Temporal.as_mfjson(TFloatSeq(str(row[5]).replace("'","")), False) if row[5] != None else Temporal.as_mfjson(TTextSeq(str(row[6]).replace("'","")), False)
-                    valueSequence.append(pd.convertTemporalPropertyValueToBaseVersion(json.loads(temporalPropertyValue)))
+            for row in rows:
+                content = row[3]
+                if row[5] is not None or row[6] is not None:
+                    temporalPropertyValue = Temporal.as_mfjson(TFloatSeq(str(row[5]).replace("'", "")), False) if row[
+                                                                                                                      5] != None else Temporal.as_mfjson(
+                        TTextSeq(str(row[6]).replace("'", "")), False)
+                    valueSequence.append(
+                        pd.convertTemporalPropertyValueToBaseVersion(json.loads(temporalPropertyValue)))
             content["valueSequence"] = valueSequence
         except (Exception, psycopg2.Error) as error:
             msg = str(error)
             return self.get_exception(
-            400, headers, request.format, 'ConnectingError', msg) 
+                400, headers, request.format, 'ConnectingError', msg)
 
-        # TODO: translate titles
+            # TODO: translate titles
         return headers, 200, to_json(content, self.pretty_print)
 
     @gzip
@@ -2279,8 +2334,8 @@ class API:
 
         :param request: A request object
         :param dataset: dataset name
-        :param identifier: moving feature's id 
-        :param tProperty: Temporal Property's id 
+        :param identifier: moving feature's id
+        :param tProperty: Temporal Property's id
 
         :returns: tuple of headers, status code, content
         """
@@ -2297,7 +2352,7 @@ class API:
         if excuted == False:
             msg = str(tPropertyList)
             return self.get_exception(
-            400, headers, request.format, 'ConnectingError', msg)   
+                400, headers, request.format, 'ConnectingError', msg)
 
         if [dataset, identifier, tProperty] not in tPropertyList:
             msg = 'Temporal Property not found'
@@ -2314,7 +2369,7 @@ class API:
                 LOGGER.error(msg)
                 return self.get_exception(
                     400, headers, request.format, 'InvalidParameterValue', msg)
-            
+
             data = request.data
             try:
                 # Parse bytes data, if applicable
@@ -2331,34 +2386,34 @@ class API:
                 msg = 'invalid request data'
                 return self.get_exception(
                     400, headers, request.format, 'InvalidParameterValue', msg)
-            
+
             if checkRequiredFieldTemporalValue(data) == False:
                 # TODO not all processes require input
                 msg = 'The required tag (e.g., type,temporalgeometry) is missing from the request data.'
                 return self.get_exception(
                     501, headers, request.format, 'MissingParameterValue', msg)
-            
+
             LOGGER.debug('Creating item')
             try:
-                pd.connect()      
-                canPost = pd.checkIfTemporalPropertyCanPost(collectionId, mfeature_id, [data], tProperty_name) 
+                pd.connect()
+                canPost = pd.checkIfTemporalPropertyCanPost(collectionId, mfeature_id, [data], tProperty_name)
                 if canPost == True:
                     pValue_id = pd.postTemporalValue(collectionId, mfeature_id, tProperty_name, data)
-                else :
+                else:
                     return headers, 400, ''
             except (Exception, psycopg2.Error) as error:
                 msg = str(error)
                 return self.get_exception(
-                400, headers, request.format, 'ConnectingError', msg)    
+                    400, headers, request.format, 'ConnectingError', msg)
             finally:
-                pd.disconnect() 
+                pd.disconnect()
             headers['Location'] = '{}/{}/items/{}/tProperties/{}/pvalue/{}'.format(
                 self.get_collections_url(), dataset, mfeature_id, tProperty_name, pValue_id)
 
-            return headers, 201, ''          
+            return headers, 201, ''
 
     def get_exception(self, status, headers, format_, code,
-                    description) -> Tuple[dict, int, str]:
+                      description) -> Tuple[dict, int, str]:
         """
         Exception handler
 
@@ -2449,7 +2504,7 @@ def validate_bbox(value=None) -> list:
             msg = 'minz should be less than maxz'
             LOGGER.debug(msg)
             raise ValueError(msg)
-        
+
         if bbox[1] > bbox[4]:
             msg = 'miny should be less than maxy'
             LOGGER.debug(msg)
@@ -2459,8 +2514,9 @@ def validate_bbox(value=None) -> list:
             msg = 'minx is greater than maxx (possibly antimeridian bbox)'
             LOGGER.debug(msg)
             raise ValueError(msg)
-    
+
     return bbox
+
 
 def validate_leaf(leaf_=None) -> str:
     """
@@ -2484,38 +2540,39 @@ def validate_leaf(leaf_=None) -> str:
 
     leaf_invalid = False
 
-    if leaf_ is not None:        
+    if leaf_ is not None:
         LOGGER.debug('detected leaf_')
         LOGGER.debug('Validating time windows')
         leaf_list = leaf_.split(',')
 
         leaf_ = ''
-        if(len(leaf_list) > 0):                
+        if (len(leaf_list) > 0):
             datetime_ = dateparse_(leaf_list[0])
             leaf_ = datetime_.strftime('%Y-%m-%d %H:%M:%S.%f')
-            
-        for i in range(1, len(leaf_list)):            
-            datetime_Pre = dateparse_(leaf_list[i - 1])          
+
+        for i in range(1, len(leaf_list)):
+            datetime_Pre = dateparse_(leaf_list[i - 1])
             datetime_ = dateparse_(leaf_list[i])
-            
+
             if datetime_Pre != '..':
                 if datetime_Pre.tzinfo is None:
                     datetime_Pre = datetime_Pre.replace(tzinfo=pytz.UTC)
 
-            if datetime_!= '..':
+            if datetime_ != '..':
                 if datetime_.tzinfo is None:
                     datetime_ = datetime_.replace(tzinfo=pytz.UTC)
 
             if datetime_Pre >= datetime_:
                 leaf_invalid = True
-                break        
-            leaf_ += ',' + datetime_.strftime('%Y-%m-%d %H:%M:%S.%f') 
-        
+                break
+            leaf_ += ',' + datetime_.strftime('%Y-%m-%d %H:%M:%S.%f')
+
     if leaf_invalid:
         msg = 'invalid leaf'
         LOGGER.debug(msg)
         raise ValueError(msg)
     return leaf_
+
 
 def validate_datetime(datetime_=None) -> str:
     """
@@ -2559,7 +2616,7 @@ def validate_datetime(datetime_=None) -> str:
                         tzinfo=pytz.UTC)
             else:
                 datetime_begin = datetime(1, 1, 1, 0, 0, 0).replace(
-                        tzinfo=pytz.UTC)
+                    tzinfo=pytz.UTC)
 
             if datetime_end != '..':
                 datetime_end = dateparse_end(datetime_end)
@@ -2567,12 +2624,13 @@ def validate_datetime(datetime_=None) -> str:
                     datetime_end = datetime_end.replace(tzinfo=pytz.UTC)
             else:
                 datetime_end = datetime(9999, 1, 1, 0, 0, 0).replace(
-                        tzinfo=pytz.UTC)
+                    tzinfo=pytz.UTC)
 
             datetime_invalid = any([
                 (datetime_begin > datetime_end)
             ])
-            datetime_ = datetime_begin.strftime('%Y-%m-%d %H:%M:%S.%f') + ',' +  datetime_end.strftime('%Y-%m-%d %H:%M:%S.%f')
+            datetime_ = datetime_begin.strftime('%Y-%m-%d %H:%M:%S.%f') + ',' + datetime_end.strftime(
+                '%Y-%m-%d %H:%M:%S.%f')
         else:  # time instant
             LOGGER.debug('detected time instant')
             datetime__ = dateparse_(datetime_)
@@ -2590,162 +2648,178 @@ def validate_datetime(datetime_=None) -> str:
         raise ValueError(msg)
     return datetime_
 
-def getListOfCollectionsId():  
+
+def getListOfCollectionsId():
     pd = ProcessMobilityData()
     try:
-        pd.connect()       
+        pd.connect()
         rows = pd.getCollectionsList()
         CollectionsId = []
         for row in rows:
             CollectionsId.append(row[0])
         return True, CollectionsId
     except (Exception, psycopg2.Error) as error:
-        return False, error  
+        return False, error
     finally:
         pd.disconnect()
 
 
-def getListOfFeaturesId():  
+def getListOfFeaturesId():
     pd = ProcessMobilityData()
     try:
-        pd.connect()       
+        pd.connect()
         rows = pd.getFeaturesList()
         FeaturesList = []
         for row in rows:
             FeaturesList.append([row[0], row[1]])
         return True, FeaturesList
     except (Exception, psycopg2.Error) as error:
-        return False, error  
+        return False, error
     finally:
         pd.disconnect()
 
-def getListOftPropertiesName():  
+
+def getListOftPropertiesName():
     pd = ProcessMobilityData()
     try:
-        pd.connect()       
+        pd.connect()
         rows = pd.gettPropertiesNameList()
         tPropertiesNameList = []
         for row in rows:
             tPropertiesNameList.append([row[0], row[1], row[2]])
         return True, tPropertiesNameList
     except (Exception, psycopg2.Error) as error:
-        return False, error  
+        return False, error
     finally:
         pd.disconnect()
+
 
 def checkRequiredFieldFeature(feature):
     if 'type' in feature:
         if feature['type'] == 'FeatureCollection':
             return True
     if 'type' not in feature or 'temporalGeometry' not in feature:
-        return False    
-    if checkRequiredFieldTemporalGeometries(feature['temporalGeometry']) == False :
-        return False    
+        return False
+    if checkRequiredFieldTemporalGeometries(feature['temporalGeometry']) == False:
+        return False
     if 'temporalProperties' in feature:
-        if checkRequiredFieldTemporalProperty(feature['temporalProperties']) == False:  
-            return False     
+        if checkRequiredFieldTemporalProperty(feature['temporalProperties']) == False:
+            return False
     if 'geometry' in feature:
-        if checkRequiredFieldGeometries(feature['geometry']) == False :   
-            return False     
+        if checkRequiredFieldGeometries(feature['geometry']) == False:
+            return False
     if 'crs' in feature:
-        if checkRequiredFieldCrs(feature['crs']) == False:     
-            return False    
+        if checkRequiredFieldCrs(feature['crs']) == False:
+            return False
     if 'trs' in feature:
-        if checkRequiredFieldCrs(feature['trs']) == False: 
+        if checkRequiredFieldCrs(feature['trs']) == False:
             return False
     return True
 
+
 def checkRequiredFieldGeometries(geometry):
-    if (checkRequiredFieldGeometry_Array(geometry) == False 
-        and checkRequiredFieldGeometry_Single(geometry) == False):
-        return False     
+    if (checkRequiredFieldGeometry_Array(geometry) == False
+            and checkRequiredFieldGeometry_Single(geometry) == False):
+        return False
     return True
+
 
 def checkRequiredFieldGeometry_Array(geometry):
     if ('type' not in geometry
-        or 'geometries' not in geometry):
+            or 'geometries' not in geometry):
         return False
-    geometries = geometry['geometries']    
-    geometries = [geometries] if not isinstance(geometries, list) else geometries    
+    geometries = geometry['geometries']
+    geometries = [geometries] if not isinstance(geometries, list) else geometries
     for l_geometry in geometries:
         if checkRequiredFieldGeometry_Single(l_geometry) == False:
-            return False    
+            return False
     return True
+
 
 def checkRequiredFieldGeometry_Single(geometry):
     if ('type' not in geometry
-        or 'coordinates' not in geometry):
+            or 'coordinates' not in geometry):
         return False
     return True
 
-def checkRequiredFieldTemporalGeometries(temporalGeometries):    
-    if (checkRequiredFieldTemporalGeometry_Array(temporalGeometries) == False 
-        and checkRequiredFieldTemporalGeometry_Single(temporalGeometries) == False):
+
+def checkRequiredFieldTemporalGeometries(temporalGeometries):
+    if (checkRequiredFieldTemporalGeometry_Array(temporalGeometries) == False
+            and checkRequiredFieldTemporalGeometry_Single(temporalGeometries) == False):
         return False
     return True
+
 
 def checkRequiredFieldTemporalGeometry_Array(temporalGeometries):
     if ('type' not in temporalGeometries
-        or 'prisms' not in temporalGeometries):
+            or 'prisms' not in temporalGeometries):
         return False
-    prisms = temporalGeometries['prisms']    
-    prisms = [prisms] if not isinstance(prisms, list) else prisms    
+    prisms = temporalGeometries['prisms']
+    prisms = [prisms] if not isinstance(prisms, list) else prisms
     for temporalGeometry in prisms:
         if checkRequiredFieldTemporalGeometry_Single(temporalGeometry) == False:
-            return False    
+            return False
     if 'crs' in temporalGeometries:
         if checkRequiredFieldCrs(temporalGeometry['crs']) == False:
-            return False    
+            return False
     if 'trs' in temporalGeometries:
         if checkRequiredFieldCrs(temporalGeometry['trs']) == False:
             return False
     return True
 
+
 def checkRequiredFieldTemporalGeometry_Single(temporalGeometry):
     if ('type' not in temporalGeometry
-        or 'datetimes' not in temporalGeometry
-        or 'coordinates' not in temporalGeometry):
+            or 'datetimes' not in temporalGeometry
+            or 'coordinates' not in temporalGeometry):
         return False
     if 'crs' in temporalGeometry:
         if checkRequiredFieldCrs(temporalGeometry['crs']) == False:
-            return False    
+            return False
     if 'trs' in temporalGeometry:
         if checkRequiredFieldCrs(temporalGeometry['trs']) == False:
             return False
     return True
 
+
 def checkRequiredFieldTemporalProperties(temporalProperties):
     if 'temporalProperties' not in temporalProperties:
-        return False    
-    if checkRequiredFieldTemporalProperty(temporalProperties['temporalProperties'])== False:
+        return False
+    if checkRequiredFieldTemporalProperty(temporalProperties['temporalProperties']) == False:
         return False
     return True
 
-def checkRequiredFieldTemporalProperty(temporalProperties):  
+
+def checkRequiredFieldTemporalProperty(temporalProperties):
     temporalProperties = [temporalProperties] if not isinstance(temporalProperties, list) else temporalProperties
     for temporalProperty in temporalProperties:
-        if ('datetimes' not in temporalProperty):            
-            return False    
+        if ('datetimes' not in temporalProperty):
+            return False
         for tproperties_name in temporalProperty:
-            if  tproperties_name != 'datetimes' and ('values' not in temporalProperty[tproperties_name] or 'interpolation' not in temporalProperty[tproperties_name]):
-                return False    
+            if tproperties_name != 'datetimes' and (
+                    'values' not in temporalProperty[tproperties_name] or 'interpolation' not in temporalProperty[
+                tproperties_name]):
+                return False
     return True
+
 
 def checkRequiredFieldTemporalValue(temporalValue):
     if ('datetimes' not in temporalValue
-        or 'values' not in temporalValue
-        or 'interpolation' not in temporalValue):
+            or 'values' not in temporalValue
+            or 'interpolation' not in temporalValue):
         return False
     return True
+
 
 def checkRequiredFieldCrs(crs):
     if ('type' not in crs
-        or 'properties' not in crs):
+            or 'properties' not in crs):
         return False
     return True
 
+
 def checkRequiredFieldTrs(trs):
     if ('type' not in trs
-        or 'properties' not in trs):
+            or 'properties' not in trs):
         return False
     return True

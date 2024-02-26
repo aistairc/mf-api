@@ -34,7 +34,7 @@ psql --user="$POSTGRES_USER" --dbname="mobilitydb" <<- 'EOSQL'
     collection_id uuid NOT NULL,
     mfeature_id uuid NOT NULL,
     tgeometry_id uuid DEFAULT uuid_generate_v4 (),
-    tgeometry_property tgeompoint NULL,
+    tgeometry_property tgeogpoint NULL,
     PRIMARY KEY (collection_id, mfeature_id, tgeometry_id),
     FOREIGN KEY (collection_id, mfeature_id) REFERENCES mfeature(collection_id, mfeature_id)
   );

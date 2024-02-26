@@ -545,6 +545,74 @@ paths:
             - Or a temporal geometry with the specified id was not found.
         '500':
           $ref: '#/components/responses/ServerError'
+  /collections/{collectionId}/items/{mFeatureId}/tgsequence/{tGeometryId}/distance:
+    get:
+      operationId: getDistanceOfTemporalPrimitiveGeometry
+      summary: Get a time-to-distance curve of a temporal primitive geometry
+      description: |
+        A user can get time-to-distance curve of a temporal primitive geometry with id `tGeometryId`.
+
+        When `date-time` query parameter is provided, this operation will return a single distance value according to the specified date and time in the `data-time` parameter.
+      tags:
+        - TemporalGeometryQuery
+      parameters:
+        - $ref: '#/components/parameters/collectionId'
+        - $ref: '#/components/parameters/mFeatureId'
+        - $ref: '#/components/parameters/tGeometryId'
+        - $ref: '#/components/parameters/date-time'
+      responses:
+        '200':
+          $ref: '#/components/responses/DistanceQuery'
+        '400':
+          description: A query parameter was not validly used.
+        '500':
+          $ref: '#/components/responses/ServerError'
+
+  /collections/{collectionId}/items/{mFeatureId}/tgsequence/{tGeometryId}/velocity:
+    get:
+      operationId: getVelocityOfTemporalPrimitiveGeometry
+      summary: Get a time-to-velocity curve of a temporal primitive geometry
+      description: |
+        A user can get time-to-velocity curve of a temporal primitive geometry with id `tGeometryId`.
+
+        When `date-time` query parameter is provided, this operation will return a single velocity value according to the specified date and time in the `data-time` parameter.
+      tags:
+        - TemporalGeometryQuery
+      parameters:
+        - $ref: '#/components/parameters/collectionId'
+        - $ref: '#/components/parameters/mFeatureId'
+        - $ref: '#/components/parameters/tGeometryId'
+        - $ref: '#/components/parameters/date-time'
+      responses:
+        '200':
+          $ref: '#/components/responses/VelocityQuery'
+        '400':
+          description: A query parameter was not validly used.
+        '500':
+          $ref: '#/components/responses/ServerError'
+
+  /collections/{collectionId}/items/{mFeatureId}/tgsequence/{tGeometryId}/acceleration:
+    get:
+      operationId: getAccelerationOfTemporalPrimitiveGeometry
+      summary: Get a time-to-acceleration curve of a temporal primitive geometry
+      description: |
+        A user can get time-to-acceleration curve of a temporal primitive geometry with id `tGeometryId`.
+
+        When `date-time` query parameter is provided, this operation will return a single acceleration value according to the specified date and time in the `data-time` parameter.
+      tags:
+        - TemporalGeometryQuery
+      parameters:
+        - $ref: '#/components/parameters/collectionId'
+        - $ref: '#/components/parameters/mFeatureId'
+        - $ref: '#/components/parameters/tGeometryId'
+        - $ref: '#/components/parameters/date-time'
+      responses:
+        '200':
+          $ref: '#/components/responses/AccelerationQuery'
+        '400':
+          description: A query parameter was not validly used.
+        '500':
+          $ref: '#/components/responses/ServerError'
   /collections/{collectionId}/items/{mFeatureId}/tProperties:
     get:
       operationId: retrieveTemporalProperties
@@ -2002,10 +2070,10 @@ components:
         type:
           type: string
           enum:
-            - TBool
+            - TBoolean
             - TText
-            - TInt
-            - TFloat
+            - TInteger
+            - TReal
             - TImage
         values:
           type: array
@@ -2301,11 +2369,11 @@ components:
           example:
             temporalProperties:
               - name: length
-                type: TFloat
+                type: TReal
                 form: http://www.qudt.org/qudt/owl/1.0.0/quantity/Length
               - name: speed
-                type: TFloat
-                form: KHM
+                type: TReal
+                form: KMH
             links:
               - href: https://pntml.io/mf/collections/{collectionId}/items/{mFeatureId}/tproperties
                 rel: self
@@ -2325,7 +2393,7 @@ components:
           example:
             name: speed
             type: TReal
-            form: KHM
+            form: KMH
             valueSequence:
             - datetimes:
               - '2011-07-15T08:00:00Z'
@@ -2336,6 +2404,66 @@ components:
               - 20
               - 50
               interpolation: Linear
+    DistanceQuery:
+      description: A temporal property data that represents a time-to-distance curve of specified temporal primitive geometry.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/temporalProperty'
+          example:
+            name: distance
+            type: TReal
+            form: MTR
+            valueSequence:
+              - datetimes:
+                  - '2011-07-15T08:00:00Z'
+                  - '2011-07-15T08:00:01Z'
+                  - '2011-07-15T08:00:02Z'
+                values:
+                  - 0
+                  - 20
+                  - 50
+                interpolation: Linear
+    VelocityQuery:
+      description: A temporal property data that represents a time-to-velocity curve of specified temporal primitive geometry.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/temporalProperty'
+          example:
+            name: velocity
+            type: TReal
+            form: KMH
+            valueSequence:
+              - datetimes:
+                  - '2011-07-15T08:00:00Z'
+                  - '2011-07-15T08:00:01Z'
+                  - '2011-07-15T08:00:02Z'
+                values:
+                  - 0
+                  - 10
+                  - 20
+                interpolation: Linear
+    AccelerationQuery:
+      description: A temporal property data that represents a time-to-acceleration curve of specified temporal primitive geometry.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/temporalProperty'
+          example:
+            name: acceleration
+            type: TReal
+            form: KMH
+            valueSequence:
+              - datetimes:
+                  - '2011-07-15T08:00:00Z'
+                  - '2011-07-15T08:00:01Z'
+                  - '2011-07-15T08:00:02Z'
+                values:
+                  - 0
+                  - 10
+                  - 20
+                interpolation: Linear
   parameters:
     bbox:
       name: bbox
@@ -2519,3 +2647,20 @@ components:
       required: true
       schema:
         type: string
+    date-time:
+      name: date-time
+      in: query
+      description: |-
+        A date-time. Date and time expressions adhere to RFC 3339. 
+
+        Examples:
+
+        * A date-time: "2018-02-12T23:20:50Z"
+
+        The date-time parameter defines the specified date and time to return the temporal value from the time-to-distance (or time-to-velocity or time-to-acceleration) curve.
+      required: false
+      schema:
+        type: string
+        format: date-time
+      style: form
+      explode: false
