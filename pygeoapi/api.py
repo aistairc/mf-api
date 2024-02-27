@@ -1878,14 +1878,26 @@ class API:
 
         headers = request.get_response_headers(SYSTEM_LOCALE)
         datetime_ = request.params.get('date-time')
-        collection_id = str(dataset)
-        mfeature_id = str(identifier)
-        tgeometry_id = str(tGeometry)
+        collection_id = dataset
+        mfeature_id = identifier
+        tgeometry_id = tGeometry
         pd = ProcessMobilityData()
-        pd.connect()
-        content = pd.get_velocity(collection_id, mfeature_id, tgeometry_id, datetime_)
-
-        pd.disconnect()
+        try:
+            datetime_ = validate_datetime(datetime_, return_type=False)
+        except ValueError as err:
+            msg = str(err)
+            return self.get_exception(
+                400, headers, request.format, 'InvalidParameterValue', msg)
+        try:
+            pd.connect()
+            print(datetime_)
+            content = pd.get_velocity(collection_id, mfeature_id, tgeometry_id, datetime_)
+        except (Exception, psycopg2.Error) as error:
+            msg = str(error)
+            return self.get_exception(
+                500, headers, request.format, 'Server Internal Error', msg)
+        finally:
+            pd.disconnect()
 
         return headers, 200, content
 
@@ -1900,12 +1912,53 @@ class API:
         mfeature_id = str(identifier)
         tgeometry_id = str(tGeometry)
         pd = ProcessMobilityData()
-        pd.connect()
-        content = pd.get_distance(collection_id, mfeature_id, tgeometry_id, datetime_)
-
-        pd.disconnect()
+        try:
+            datetime_ = validate_datetime(datetime_, return_type=False)
+        except ValueError as err:
+            msg = str(err)
+            return self.get_exception(
+                400, headers, request.format, 'InvalidParameterValue', msg)
+        try:
+            pd.connect()
+            content = pd.get_distance(collection_id, mfeature_id, tgeometry_id, datetime_)
+        except (Exception, psycopg2.Error) as error:
+            msg = str(error)
+            return self.get_exception(
+            500, headers, request.format, 'ConnectingError', msg)
+        finally:
+            pd.disconnect()
 
         return headers, 200, content
+
+    @gzip
+    @pre_process
+    def get_collection_items_tGeometry_acceleration(self, request: Union[APIRequest, Any], dataset, identifier,
+                                                    tGeometry) -> Tuple[dict, int, str]:
+
+        headers = request.get_response_headers(SYSTEM_LOCALE)
+        datetime_ = request.params.get('date-time')
+        collection_id = dataset
+        mfeature_id = identifier
+        tgeometry_id = tGeometry
+        pd = ProcessMobilityData()
+        try:
+            datetime_ = validate_datetime(datetime_, return_type=False)
+        except ValueError as err:
+            msg = str(err)
+            return self.get_exception(
+                400, headers, request.format, 'InvalidParameterValue', msg)
+        try:
+            pd.connect()
+            content = pd.get_acceleration(collection_id, mfeature_id, tgeometry_id, datetime_)
+        except (Exception, psycopg2.Error) as error:
+            msg = str(error)
+            return self.get_exception(
+                500, headers, request.format, 'ConnectingError', msg)
+        finally:
+            pd.disconnect()
+
+        return headers, 200, content
+
 
     @gzip
     @pre_process
@@ -2574,7 +2627,7 @@ def validate_leaf(leaf_=None) -> str:
     return leaf_
 
 
-def validate_datetime(datetime_=None) -> str:
+def validate_datetime(datetime_=None, return_type=True) -> str:
     """
     Helper function to validate temporal parameter
 
@@ -2640,7 +2693,10 @@ def validate_datetime(datetime_=None) -> str:
             datetime_invalid = any([
                 (datetime__ == '..')
             ])
-            datetime_ = datetime__.strftime('%Y-%m-%d %H:%M:%S.%f') + ',' + datetime__.strftime('%Y-%m-%d %H:%M:%S.%f')
+            if return_type:
+                datetime_ = datetime__.strftime('%Y-%m-%d %H:%M:%S.%f') + ',' + datetime__.strftime('%Y-%m-%d %H:%M:%S.%f')
+            else:
+                datetime_ = datetime__.strftime('%Y-%m-%d %H:%M:%S.%f')
 
     if datetime_invalid:
         msg = 'datetime parameter out of range'
