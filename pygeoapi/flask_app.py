@@ -290,6 +290,22 @@ def collection_items_tgeometries_distance(collection_id, item_id, tGeometry_id):
             api_.get_collection_items_tGeometry_distance(request, collection_id, item_id, tGeometry_id))
 
 
+@BLUEPRINT.route('/collections/<path:collection_id>/items/<item_id>/tgsequence/<tGeometry_id>/acceleration',
+                 methods=['GET'])
+def collection_items_tgeometries_acceleration(collection_id, item_id, tGeometry_id):
+    """
+    OGC API collections items endpoint
+
+    :param collection_id: collection identifier
+    :param item_id: item identifier
+
+    :returns: HTTP response
+    """
+
+    if request.method == 'GET':  # list items
+        return get_response(
+            api_.get_collection_items_tGeometry_acceleration(request, collection_id, item_id, tGeometry_id))
+
 @BLUEPRINT.route('/collections/<path:collection_id>/items/<item_id>/tProperties',
                  methods=['GET', 'POST'])
 def collection_items_tproperties(collection_id, item_id):

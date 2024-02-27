@@ -633,8 +633,10 @@ class ProcessMobilityData:
         form = "MTS"
         key = "speed"
         cursor = self.connection.cursor()
-        select_query = "SELECT speed(tgeometry_property) AS speed FROM tgeometry WHERE collection_id = '{0}' and mfeature_id = '{1}' and tgeometry_id = '{2}'".format(
-            collection_id, mfeature_id, tgeometry_id)
+        if datetime is None:
+            select_query = f"SELECT speed(tgeometry_property) AS speed FROM tgeometry WHERE collection_id = '{collection_id}' and mfeature_id = '{mfeature_id}' and tgeometry_id = '{tgeometry_id}'"
+        else:
+            select_query = f"SELECT valueAtTimestamp(speed(tgeometry_property), '{datetime}') AS speed, interpolation(speed(tgeometry_property)) AS interp FROM tgeometry WHERE collection_id = '{collection_id}' and mfeature_id = '{mfeature_id}' and tgeometry_id = '{tgeometry_id}'"
         cursor.execute(select_query)
         rows = cursor.fetchall()
 
@@ -645,39 +647,100 @@ class ProcessMobilityData:
         form = "MTR"
         key = "cumulativeLength"
         cursor = self.connection.cursor()
-        select_query = "SELECT cumulativeLength(tgeometry_property) AS length FROM tgeometry WHERE collection_id = '{0}' and mfeature_id = '{1}' and tgeometry_id = '{2}'".format(
-            collection_id, mfeature_id, tgeometry_id)
+        if datetime is None:
+            select_query = f"SELECT cumulativeLength(tgeometry_property) AS distance FROM tgeometry WHERE collection_id = '{collection_id}' and mfeature_id = '{mfeature_id}' and tgeometry_id = '{tgeometry_id}'"
+        else:
+            select_query = f"SELECT valueAtTimestamp(cumulativeLength(tgeometry_property), '{datetime}') AS distance, interpolation(cumulativeLength(tgeometry_property)) AS interp FROM tgeometry WHERE collection_id = '{collection_id}' and mfeature_id = '{mfeature_id}' and tgeometry_id = '{tgeometry_id}'"
         cursor.execute(select_query)
         rows = cursor.fetchall()
 
         return self.to_tProperties(rows, key, form, datetime)
 
-    def to_tProperties(self, rows, key, form, datetime):
-        tProperties_list = []
-        for each_row in rows:
-            each_values = [each_val._value for each_val in each_row[0].instants]
-            each_time = [format_datetime(str(each_val._time)) for each_val in each_row[0].instants]
-            interpolation = "Step" if each_row[0].interpolation == "Stepwise" else each_row[0].interpolation
-            tProperties = {
-                'datetimes': [],
-            }
-            tProperties[key] = {
-                'form': form,
-                'type': "Measure",
-                'interpolation': interpolation,
-                'values': [],
-            }
-            if datetime is None:
-                tProperties["datetimes"] = each_time
-                tProperties[key]["values"] = each_values
-                tProperties_list.append(tProperties)
-            else:
-                try:
-                    idx = each_time.index(datetime)
-                    tProperties["datetimes"].append(each_time[idx])
-                    tProperties[key]["values"].append(each_values[idx])
-                    tProperties_list.append(tProperties)
-                except:
-                    tProperties_list.append({})
+    def get_acceleration(self, collection_id, mfeature_id, tgeometry_id, datetime=None):
 
-        return tProperties_list
+        tProperty = {
+            "name": "acceleration",
+            "type": "TReal",
+            "form": "MTS",
+            "valueSequence": []
+        }
+        cursor = self.connection.cursor()
+
+        select_query = f"SELECT speed(tgeometry_property) AS speed FROM tgeometry WHERE collection_id = '{collection_id}' and mfeature_id = '{mfeature_id}' and tgeometry_id = '{tgeometry_id}'"
+        # select_query = f"SELECT cumulativeLength(tgeometry_property) AS distance FROM tgeometry WHERE collection_id = '{collection_id}' and mfeature_id = '{mfeature_id}' and tgeometry_id = '{tgeometry_id}'"
+        cursor.execute(select_query)
+        rows = cursor.fetchall()
+        for each_row in rows:
+            interpolation = "Step" if each_row[0].interpolation == "Stepwise" else each_row[0].interpolation
+            each_time = [format_datetime(str(each_val._time)) for each_val in each_row[0].instants]
+            if interpolation == "Step":
+                each_values = [0 for each_val in each_row[0].instants]
+            else:
+                each_values = [each_val._value for each_val in each_row[0].instants]
+
+            valueSequence = self.calculate_acceleration(each_values, each_time, datetime)
+            if valueSequence.get("values"):
+                if interpolation == "Linear":
+                    valueSequence["interpolation"] = "Step"
+                else:
+                    valueSequence["interpolation"] = interpolation
+            tProperty["valueSequence"].append(valueSequence)
+        return tProperty
+
+    def to_tProperties(self, rows, key, form, datetime):
+        tProperty = {
+            "name": key,
+            "type": "TReal",
+            "form": form,
+            "valueSequence": []
+        }
+        for each_row in rows:
+            if datetime is None:
+                each_values = [each_val._value for each_val in each_row[0].instants]
+                each_time = [format_datetime(str(each_val._time)) for each_val in each_row[0].instants]
+                interpolation = "Step" if each_row[0].interpolation == "Stepwise" else each_row[0].interpolation
+                valueSequence = {
+                    "datetimes": each_time,
+                    "values": each_values,
+                    "interpolation": interpolation
+                }
+            else:
+                interpolation = "Step" if each_row[1] == "Stepwise" else each_row[1]
+                valueSequence = {
+                    "datetimes": [format_datetime(datetime)],
+                    "values": [each_row[0]],
+                    "interpolation": interpolation
+                }
+            tProperty["valueSequence"].append(valueSequence)
+        return tProperty
+
+    def calculate_acceleration(self, velocities, times, chk_dtime):
+        valueSequence = {}
+        time_format = '%Y-%m-%d %H:%M:%S.%f'
+        time_format2 = '%Y-%m-%dT%H:%M:%S.%fZ'
+        if chk_dtime is not None:
+            chk_time = datetime.datetime.strptime(chk_dtime, time_format)
+
+            for i in range(1, len(velocities)):
+                time1 = datetime.datetime.strptime(times[i - 1], time_format2)
+                time2 = datetime.datetime.strptime(times[i], time_format2)
+                if chk_time <= time2 and chk_time >= time1:
+                    delta_v = velocities[i] - velocities[i - 1]
+                    delta_t = (time2 - time1).total_seconds()
+                    acceleration = delta_v / delta_t
+                    valueSequence["values"] = [acceleration]
+                    valueSequence["datetimes"] = [format_datetime(chk_dtime)]
+                    break
+        else:
+            valueSequence["values"] = []
+            valueSequence["datetimes"] = []
+            for i in range(1, len(velocities)):
+                delta_v = velocities[i] - velocities[i - 1]
+                time1 = datetime.datetime.strptime(times[i - 1], time_format2)
+                time2 = datetime.datetime.strptime(times[i], time_format2)
+                delta_t = (time2 - time1).total_seconds()
+                acceleration = delta_v / delta_t
+                valueSequence["values"].append(acceleration)
+                valueSequence["datetimes"].append(times[i])
+
+        return valueSequence
