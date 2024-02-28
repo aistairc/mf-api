@@ -7,19 +7,22 @@ It includes operations for filtering, sorting, and aggregating moving feature da
 MF-API Server implements a standard interface which is defined in the OGC API – MovingFeatures – Part 1:Core. 
 The summary of the supported API is described in the below table. 
 
-| URL Path                                                | Supported HTTP(s) Methods |
-|---------------------------------------------------------|---------------------------|
-| /                                                       | GET                       |
-| /api                                                    | GET                       |
-| /conformance                                            | GET                       |
-| /collections                                            | GET,POST                  |
-| /collections/{c_id}                                     | GET,DELETE,PUT            |
-| /collections/{c_id}/items                               | GET,POST                  |
-| /collections/{c_id}/items/{mf_id}                       | GET,DELETE                |
-| /collections/{c_id}/items/{mf_id}/tgsequence            | GET,POST                  |
-| /collections/{c_id}/items/{mf_id}/tgsequence/{tg_id}    | DELETE                    |
-| /collections/{c_id}/items/{mf_id}/tproperties           | GET,POST                  |
-| /collections/{c_id}/items/{mf_id}/tproperties/{tp_name} | GET,POST,DELETE           |
+| URL Path                                                          | Supported HTTP(s) Methods |
+|-------------------------------------------------------------------|---------------------------|
+| /                                                                 | GET                       |
+| /api                                                              | GET                       |
+| /conformance                                                      | GET                       |
+| /collections                                                      | GET,POST                  |
+| /collections/{c_id}                                               | GET,DELETE,PUT            |
+| /collections/{c_id}/items                                         | GET,POST                  |
+| /collections/{c_id}/items/{mf_id}                                 | GET,DELETE                |
+| /collections/{c_id}/items/{mf_id}/tgsequence                      | GET,POST                  |
+| /collections/{c_id}/items/{mf_id}/tgsequence/{tg_id}              | DELETE                    |
+| /collections/{c_id}/items/{mf_id}/tgsequence/{tg_id}/distance     | GET                       |
+| /collections/{c_id}/items/{mf_id}/tgsequence/{tg_id}/velocity     | GET                       |
+| /collections/{c_id}/items/{mf_id}/tgsequence/{tg_id}/acceleration | GET                       |
+| /collections/{c_id}/items/{mf_id}/tproperties                     | GET,POST                  |
+| /collections/{c_id}/items/{mf_id}/tproperties/{tp_name}           | GET,POST,DELETE           |
 
 The implementation of the MF-API Server is basically a modification and extension of [pygeoapi](https://github.com/geopython/pygeoapi). The basic idea is to modify the minimum amount of code that needs to be modified (_flask_app.py and api.py_) based on the scenario of supporting OGC API – MF using Swagger UI in pygeoapi. In addition, we added and modified code (_process_data.py and postgresql.py_) to store and query web resources defined in the OGC API – MF using [MobilityDB](https://github.com/MobilityDB/MobilityDB). The overall flow of the process is shown in the figure below. 
 
@@ -34,8 +37,8 @@ Please refer to [them](https://hub.docker.com/r/mobilitydb/mobilitydb) for more 
 
 If you have installed docker in your system, you can run MF-API Server as below:
 ```commandline
-docker pull ghcr.io/taehoonk/mf-api-server:1.1
-docker run -p 8085:8085 -p 25432:5432 -d --name mf-api-server ghcr.io/taehoonk/mf-api-server:1.1
+docker pull ghcr.io/taehoonk/mf-api-server:1.2
+docker run -p 8085:8085 -p 25432:5432 -d --name mf-api-server ghcr.io/taehoonk/mf-api-server:1.2
 docker exec mf-api-server ./run.sh
 ```
 * The first command is to download the latest image of the MF-API Server.
