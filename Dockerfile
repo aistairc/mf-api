@@ -1,4 +1,4 @@
-FROM mobilitydb/mobilitydb:latest
+FROM mobilitydb/mobilitydb:14-3.2-1
 
 LABEL maintainer="Taehoon Kim <kim.taehoon@aist.go.jp>"
 
