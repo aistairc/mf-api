@@ -117,14 +117,17 @@ class ProcessMobilityData:
         select_query += "from (select mfeature.collection_id, mfeature.mfeature_id, mfeature.mf_geometry, mfeature.mf_property, mfeature.lifespan, extent(tgeometry.tgeometry_property) as extentTGeometry "
         select_query += "from mfeature "
         select_query += "left outer join tgeometry on mfeature.collection_id = tgeometry.collection_id and mfeature.mfeature_id = tgeometry.mfeature_id "
-        select_query += "where mfeature.collection_id ='{0}' ".format(collection_id)
+        select_query += ("where mfeature.collection_id ='{0}' "
+                         .format(collection_id))
         select_query += "group by mfeature.collection_id, mfeature.mfeature_id, mfeature.mf_geometry, mfeature.mf_property, mfeature.lifespan) mfeature "
         select_query += "left outer join (select mfeature.collection_id, mfeature.mfeature_id, extent(tproperties.pvalue_float) as extentTPropertiesValueFloat, extent(tproperties.pvalue_text) as extentTPropertiesValueText "
         select_query += "from mfeature "
         select_query += "left outer join tproperties on mfeature.collection_id = tproperties.collection_id and mfeature.mfeature_id = tproperties.mfeature_id "
-        select_query += "where mfeature.collection_id ='{0}' ".format(collection_id)
+        select_query += ("where mfeature.collection_id ='{0}' "
+                         .format(collection_id))
         select_query += "group by  mfeature.collection_id, mfeature.mfeature_id) tproperties ON mfeature.collection_id = tproperties.collection_id and mfeature.mfeature_id = tproperties.mfeature_id "
-        select_query += "where 1=1 {0} {1}".format(bbox_restriction, datetime_restriction)
+        select_query += ("where 1=1 {0} {1}"
+                         .format(bbox_restriction, datetime_restriction))
 
         cursor.execute(select_query)
         rows = cursor.fetchall()
@@ -142,14 +145,16 @@ class ProcessMobilityData:
             select_geometry_query += "from (select mfeature.collection_id, mfeature.mfeature_id, mfeature.mf_geometry, mfeature.mf_property, mfeature.lifespan, extent(tgeometry.tgeometry_property) as extentTGeometry "
             select_geometry_query += "from mfeature "
             select_geometry_query += "left outer join tgeometry on mfeature.collection_id = tgeometry.collection_id and mfeature.mfeature_id = tgeometry.mfeature_id "
-            select_geometry_query += "where mfeature.collection_id ='{0}' ".format(collection_id)
+            select_geometry_query += ("where mfeature.collection_id ='{0}' "
+                                      .format(collection_id))
             select_geometry_query += "group by mfeature.collection_id, mfeature.mfeature_id, mfeature.mf_geometry, mfeature.mf_property, mfeature.lifespan) mfeature "
-            select_geometry_query += "where 1=1 {0} {1}) mfeature ".format(bbox_restriction, limit_restriction)
-            select_geometry_query += "left outer join (select tgeometry.collection_id, tgeometry.mfeature_id, tgeometry.tgeometry_id, {0} as tgeometry_property ".format(
-                subTrajectory_field)
+            select_geometry_query += ("where 1=1 {0} {1}) mfeature "
+                                      .format(bbox_restriction, limit_restriction))
+            select_geometry_query += ("left outer join (select tgeometry.collection_id, tgeometry.mfeature_id, tgeometry.tgeometry_id, {0} as tgeometry_property "
+                                      .format(subTrajectory_field))
             select_geometry_query += "from tgeometry "
-            select_geometry_query += "where tgeometry.collection_id ='{0}' and {1} is not null".format(collection_id,
-                                                                                                       subTrajectory_field)
+            select_geometry_query += ("where tgeometry.collection_id ='{0}' and {1} is not null"
+                                      .format(collection_id, subTrajectory_field))
             select_geometry_query += ") tgeometry ON mfeature.collection_id = tgeometry.collection_id and mfeature.mfeature_id = tgeometry.mfeature_id "
             select_geometry_query += "where 1=1 "
 
@@ -163,16 +168,15 @@ class ProcessMobilityData:
         select_query += "from (select mfeature.collection_id, mfeature.mfeature_id, mfeature.mf_geometry, mfeature.mf_property, mfeature.lifespan, extent(tgeometry.tgeometry_property) as extentTGeometry "
         select_query += "from mfeature "
         select_query += "left outer join tgeometry on mfeature.collection_id = tgeometry.collection_id and mfeature.mfeature_id = tgeometry.mfeature_id "
-        select_query += "where mfeature.collection_id ='{0}' AND mfeature.mfeature_id='{1}' ".format(collection_id,
-                                                                                                     mfeature_id)
+        select_query += ("where mfeature.collection_id ='{0}' AND mfeature.mfeature_id='{1}' "
+                         .format(collection_id, mfeature_id))
         select_query += "group by mfeature.collection_id, mfeature.mfeature_id, mfeature.mf_geometry, mfeature.mf_property, mfeature.lifespan) mfeature "
 
         cursor.execute(select_query)
         rows = cursor.fetchall()
         return rows
 
-    def getTemporalGeometries(self, collection_id, mfeature_id, bbox='', leaf='', datetime='', limit=10, offset=0,
-                              subTrajectory=False):
+    def getTemporalGeometries(self, collection_id, mfeature_id, bbox='', leaf='', datetime='', limit=10, offset=0, subTrajectory=False):
         cursor = self.connection.cursor()
         tgeometry_property = 'null'
 
@@ -183,6 +187,7 @@ class ProcessMobilityData:
                 bbox_restriction = " and box2d(stbox(" + s_bbox + ")) &&& box2d(stbox(tgeometry_property))"
             elif len(bbox) == 6:
                 bbox_restriction = " and box3d(stbox_z(" + s_bbox + ")) &&& box3d(stbox(tgeometry_property))"
+
         datetime_restriction = ""
         if datetime != '' and datetime is not None:
             datetime_restriction = " and atperiod(tgeometry_property, '[" + datetime + "]') is not null "
@@ -192,12 +197,10 @@ class ProcessMobilityData:
         elif subTrajectory == True or subTrajectory == "true":
             tgeometry_property = "atperiod(tgeometry_property, '[" + datetime + "]')"
 
-        select_query = "SELECT collection_id,mfeature_id,tgeometry_id, tgeometry_property, {0} ".format(
-            tgeometry_property)
-        select_query += "FROM tgeometry WHERE collection_id ='{0}' AND mfeature_id='{1}' {2} {3}".format(collection_id,
-                                                                                                         mfeature_id,
-                                                                                                         bbox_restriction,
-                                                                                                         datetime_restriction)
+        select_query = ("SELECT collection_id, mfeature_id, tgeometry_id, tgeometry_property, {0} "
+                        .format(tgeometry_property))
+        select_query += ("FROM tgeometry WHERE collection_id ='{0}' AND mfeature_id='{1}' {2} {3}"
+                         .format(collection_id, mfeature_id, bbox_restriction, datetime_restriction))
 
         cursor.execute(select_query)
         rows = cursor.fetchall()
@@ -206,11 +209,11 @@ class ProcessMobilityData:
         select_query += " LIMIT " + str(limit) + " OFFSET " + str(offset)
         cursor.execute(select_query)
         rows = cursor.fetchall()
-        numberReturned = len(rows);
+        numberReturned = len(rows)
+
         return rows, numberMatched, numberReturned
 
-    def getTemporalProperties(self, collection_id, mfeature_id, datetime='', limit=10, offset=0,
-                              subTemporalValue=False):
+    def getTemporalProperties(self, collection_id, mfeature_id, datetime='', limit=10, offset=0, subTemporalValue=False):
         cursor = self.connection.cursor()
 
         datetime_restriction = ''
@@ -222,8 +225,8 @@ class ProcessMobilityData:
         select_query = "select distinct on (tproperties.collection_id, tproperties.mfeature_id, tproperties.tproperties_name) "
         select_query += "tproperties.collection_id, tproperties.mfeature_id, tproperties.tproperties_name, tproperties.tproperty "
         select_query += "from tproperties "
-        select_query += "WHERE tproperties.collection_id ='{0}' AND tproperties.mfeature_id='{1}' {2}".format(
-            collection_id, mfeature_id, datetime_restriction)
+        select_query += ("WHERE tproperties.collection_id ='{0}' AND tproperties.mfeature_id='{1}' {2}"
+                         .format(collection_id, mfeature_id, datetime_restriction))
 
         cursor.execute(select_query)
         rows = cursor.fetchall()
@@ -241,26 +244,25 @@ class ProcessMobilityData:
             select_temporalValue_query = "select tproperties.collection_id, tproperties.mfeature_id, tproperties.tproperties_name, tproperties.tproperty, datetime_group, pvalue_float, pvalue_text "
             select_temporalValue_query += "from (select distinct on (tproperties.collection_id, tproperties.mfeature_id, tproperties.tproperties_name) "
             select_temporalValue_query += "tproperties.collection_id, tproperties.mfeature_id, tproperties.tproperties_name, tproperties.tproperty "
-            select_temporalValue_query += "from tproperties where tproperties.collection_id ='{0}' AND tproperties.mfeature_id='{1}' {2} {3}) tproperties ".format(
-                collection_id, mfeature_id, datetime_restriction, limit_restriction)
+            select_temporalValue_query += ("from tproperties where tproperties.collection_id ='{0}' AND tproperties.mfeature_id='{1}' {2} {3}) tproperties "
+                                          .format(collection_id, mfeature_id, datetime_restriction, limit_restriction))
             select_temporalValue_query += "left outer join (select tproperties.collection_id, tproperties.mfeature_id, tproperties.tproperties_name, tproperties.datetime_group, "
-            select_temporalValue_query += "{0} as pvalue_float, {1} as pvalue_text ".format(
-                subTemporalValue_float_field, subTemporalValue_text_field)
-            select_temporalValue_query += "from tproperties where tproperties.collection_id ='{0}' AND tproperties.mfeature_id='{1}' ".format(
-                collection_id, mfeature_id)
-            select_temporalValue_query += "and ({0} is not null or {1} is not null)".format(
-                subTemporalValue_float_field, subTemporalValue_text_field)
+            select_temporalValue_query += ("{0} as pvalue_float, {1} as pvalue_text "
+                                          .format(subTemporalValue_float_field, subTemporalValue_text_field))
+            select_temporalValue_query += ("from tproperties where tproperties.collection_id ='{0}' AND tproperties.mfeature_id='{1}' "
+                                          .format(collection_id, mfeature_id))
+            select_temporalValue_query += ("and ({0} is not null or {1} is not null)"
+                                          .format(subTemporalValue_float_field, subTemporalValue_text_field))
             select_temporalValue_query += ") tpropertiesvalue on tproperties.collection_id = tpropertiesvalue.collection_id "
             select_temporalValue_query += "and tproperties.mfeature_id = tpropertiesvalue.mfeature_id and tproperties.tproperties_name = tpropertiesvalue.tproperties_name "
             select_temporalValue_query += "where 1=1 order by datetime_group"
 
-            click.echo(select_temporalValue_query)
+            # click.echo(select_temporalValue_query)
             cursor.execute(select_temporalValue_query)
             rows = cursor.fetchall()
         return rows, numberMatched, numberReturned
 
-    def getTemporalPropertiesValue(self, collection_id, mfeature_id, tProperty_name, leaf='', datetime='',
-                                   subTemporalValue=False):
+    def getTemporalPropertiesValue(self, collection_id, mfeature_id, tProperty_name, leaf='', datetime='', subTemporalValue=False):
         cursor = self.connection.cursor()
 
         datetime_restriction = ""
@@ -279,12 +281,12 @@ class ProcessMobilityData:
         select_query = "select tproperties.collection_id, tproperties.mfeature_id, tproperties.tproperties_name, tproperties.tproperty, datetime_group, pvalue_float, pvalue_text "
         select_query += "from (select distinct on (tproperties.collection_id, tproperties.mfeature_id, tproperties.tproperties_name) "
         select_query += "tproperties.collection_id, tproperties.mfeature_id, tproperties.tproperties_name, tproperties.tproperty "
-        select_query += "from tproperties where tproperties.collection_id ='{0}' AND tproperties.mfeature_id='{1}' AND tproperties.tproperties_name='{2}') tproperties ".format(
-            collection_id, mfeature_id, tProperty_name)
+        select_query += ("from tproperties where tproperties.collection_id ='{0}' AND tproperties.mfeature_id='{1}' AND tproperties.tproperties_name='{2}') tproperties "
+        .format(collection_id, mfeature_id, tProperty_name))
         select_query += "left outer join (select tproperties.collection_id, tproperties.mfeature_id, tproperties.tproperties_name, tproperties.datetime_group, "
         select_query += "{0} as pvalue_float, {1} as pvalue_text ".format(float_field, text_field)
-        select_query += "from tproperties where tproperties.collection_id ='{0}' AND tproperties.mfeature_id='{1}' AND tproperties.tproperties_name='{2}' {3}".format(
-            collection_id, mfeature_id, tProperty_name, datetime_restriction)
+        select_query += ("from tproperties where tproperties.collection_id ='{0}' AND tproperties.mfeature_id='{1}' AND tproperties.tproperties_name='{2}' {3}"
+        .format(collection_id, mfeature_id, tProperty_name, datetime_restriction))
         select_query += ") tpropertiesvalue on tproperties.collection_id = tpropertiesvalue.collection_id "
         select_query += "and tproperties.mfeature_id = tpropertiesvalue.mfeature_id and tproperties.tproperties_name = tpropertiesvalue.tproperties_name "
         select_query += "where 1=1 order by datetime_group"
@@ -295,8 +297,8 @@ class ProcessMobilityData:
 
     def postCollection(self, collection_property):
         cursor = self.connection.cursor()
-        cursor.execute("INSERT INTO collection(collection_property) VALUES ('{0}') RETURNING collection_id".format(
-            json.dumps(collection_property)))
+        cursor.execute("INSERT INTO collection(collection_property) VALUES ('{0}') RETURNING collection_id"
+                        .format(json.dumps(collection_property)))
 
         collection_id = cursor.fetchone()[0]
         return collection_id
@@ -315,24 +317,22 @@ class ProcessMobilityData:
         if 'geometry' in g_movingfeature:
             geometry = g_movingfeature.pop("geometry", None)
             cursor.execute(
-                "INSERT INTO mfeature(collection_id, mf_geometry, mf_property, lifespan) VALUES ('{0}', ST_GeomFromGeoJSON('{1}'), '{2}', {3}) RETURNING mfeature_id".format(
-                    collection_id, json.dumps(geometry), json.dumps(g_movingfeature), lifespan))
+                "INSERT INTO mfeature(collection_id, mf_geometry, mf_property, lifespan) VALUES ('{0}', ST_GeomFromGeoJSON('{1}'), '{2}', {3}) RETURNING mfeature_id"
+                .format(collection_id, json.dumps(geometry), json.dumps(g_movingfeature), lifespan))
         else:
             cursor.execute(
-                "INSERT INTO mfeature(collection_id, mf_property, lifespan) VALUES ('{0}', '{1}', {2}) RETURNING mfeature_id".format(
-                    collection_id, json.dumps(g_movingfeature), lifespan))
+                "INSERT INTO mfeature(collection_id, mf_property, lifespan) VALUES ('{0}', '{1}', {2}) RETURNING mfeature_id"
+                .format(collection_id, json.dumps(g_movingfeature), lifespan))
         mfeature_id = cursor.fetchone()[0]
 
         if temporalGeometries is not None:
-            temporalGeometries = [temporalGeometries] if not isinstance(temporalGeometries,
-                                                                        list) else temporalGeometries
+            temporalGeometries = [temporalGeometries] if not isinstance(temporalGeometries, list) else temporalGeometries
             for temporalGeometry in temporalGeometries:
                 # for _ in range(10000):
                 self.postTemporalGeometry(collection_id, mfeature_id, temporalGeometry)
 
         if temporalProperties is not None:
-            temporalProperties = [temporalProperties] if not isinstance(temporalProperties,
-                                                                        list) else temporalProperties
+            temporalProperties = [temporalProperties] if not isinstance(temporalProperties, list) else temporalProperties
             for temporalProperty in temporalProperties:
                 self.postTemporalProperties(collection_id, mfeature_id, temporalProperty)
 
@@ -347,8 +347,8 @@ class ProcessMobilityData:
         value = Temporal.from_mfjson(json.dumps(temporalGeometry))
 
         cursor.execute(
-            "INSERT INTO tgeometry(collection_id, mfeature_id, tgeometry_property) VALUES ('{0}', '{1}', '{2}') RETURNING tgeometry_id".format(
-                collection_id, mfeature_id, str(value)))
+            "INSERT INTO tgeometry(collection_id, mfeature_id, tgeometry_property, tgeog_property) VALUES ('{0}', '{1}', '{2}', '{3}') RETURNING tgeometry_id"
+            .format(collection_id, mfeature_id, str(value), str(value)))
         tgeometry_id = cursor.fetchone()[0]
 
         return tgeometry_id
@@ -375,20 +375,18 @@ class ProcessMobilityData:
 
                 pymeos_initialize()
                 value = Temporal.from_mfjson(json.dumps(temporalValue))
-                insert_querry = "INSERT INTO tproperties(collection_id, mfeature_id, tproperties_name, datetime_group, tproperty, {0}) ".format(
-                    pvalue_Column)
-                insert_querry += "VALUES ('{0}', '{1}', '{2}', {3}, '{4}', '{5}')".format(collection_id, mfeature_id,
-                                                                                          tproperties_name,
-                                                                                          datetime_group, json.dumps(
-                        temporalProperty[tproperties_name]), str(value))
-                cursor.execute(insert_querry)
+                insert_query = ("INSERT INTO tproperties(collection_id, mfeature_id, tproperties_name, datetime_group, tproperty, {0}) "
+                                .format(pvalue_Column))
+                insert_query += ("VALUES ('{0}', '{1}', '{2}', {3}, '{4}', '{5}')"
+                                  .format(collection_id, mfeature_id, tproperties_name, datetime_group,
+                                          json.dumps(temporalProperty[tproperties_name]), str(value)))
+                cursor.execute(insert_query)
             else:
-                insert_querry = "INSERT INTO tproperties(collection_id, mfeature_id, tproperties_name, datetime_group, tproperty) "
-                insert_querry += "VALUES ('{0}', '{1}', '{2}', {3}, '{4}')".format(collection_id, mfeature_id,
-                                                                                   tproperties_name, datetime_group,
-                                                                                   json.dumps(temporalProperty[
-                                                                                                  tproperties_name]))
-                cursor.execute(insert_querry)
+                insert_query = "INSERT INTO tproperties(collection_id, mfeature_id, tproperties_name, datetime_group, tproperty) "
+                insert_query += ("VALUES ('{0}', '{1}', '{2}', {3}, '{4}')"
+                                  .format(collection_id, mfeature_id, tproperties_name, datetime_group,
+                                          json.dumps(temporalProperty[tproperties_name])))
+                cursor.execute(insert_query)
 
         return tproperties_name
 
@@ -409,10 +407,10 @@ class ProcessMobilityData:
         if dataType == 'MovingFloat':
             pvalue_Column = "pValue_float"
 
-        insert_querry = "INSERT INTO tproperties(collection_id, mfeature_id, tproperties_name, datetime_group, {0}) ".format(
-            pvalue_Column)
-        insert_querry += "VALUES ('{0}', '{1}', '{2}', {3}, '{4}')".format(collection_id, mfeature_id, tproperties_name,
-                                                                           datetime_group, str(value))
+        insert_querry = ("INSERT INTO tproperties(collection_id, mfeature_id, tproperties_name, datetime_group, {0}) "
+                         .format(pvalue_Column))
+        insert_querry += ("VALUES ('{0}', '{1}', '{2}', {3}, '{4}')"
+                          .format(collection_id, mfeature_id, tproperties_name, datetime_group, str(value)))
         cursor.execute(insert_querry)
 
         pValue_id = ''
@@ -421,8 +419,8 @@ class ProcessMobilityData:
 
     def putCollection(self, collection_id, collection_property):
         cursor = self.connection.cursor()
-        cursor.execute("UPDATE collection set collection_property = '{0}' WHERE collection_id = '{1}'".format(
-            json.dumps(collection_property), collection_id))
+        cursor.execute("UPDATE collection set collection_property = '{0}' WHERE collection_id = '{1}'"
+                       .format(json.dumps(collection_property), collection_id))
 
     def deleteCollection(self, restriction):
         cursor = self.connection.cursor()
@@ -518,6 +516,8 @@ class ProcessMobilityData:
     def convertTemporalPropertyValueToBaseVersion(self, temporalPropertyValue):
         if 'interpolations' in temporalPropertyValue:
             temporalPropertyValue['interpolation'] = temporalPropertyValue['interpolations'][0]
+            if temporalPropertyValue['interpolation'] == 'Stepwise':
+                temporalPropertyValue['interpolation'] = 'Step'
             del temporalPropertyValue['interpolations']
 
         if 'type' in temporalPropertyValue:
@@ -569,8 +569,7 @@ class ProcessMobilityData:
                 datetimes = g_temporalProperty["datetimes"]
                 for i in range(len(datetimes)):
                     if isinstance(datetimes[i], int):
-                        datetimes[i] = datetime.datetime.fromtimestamp(datetimes[i] / 1e3).strftime(
-                            "%Y/%m/%dT%H:%M:%S.%f")
+                        datetimes[i] = datetime.datetime.fromtimestamp(datetimes[i] / 1e3).strftime("%Y/%m/%dT%H:%M:%S.%f")
                     else:
                         datetimes[i] = datetimes[i].replace('Z', '')
 
@@ -583,10 +582,10 @@ class ProcessMobilityData:
 
                 select_query = "select collection_id, mfeature_id, tproperties_name, count(datetime_group) as intersect_count "
                 select_query += "from tproperties "
-                select_query += "where collection_id ='{0}' and mfeature_id='{1}' and tproperties_name in ({2}) ".format(
-                    collection_id, mfeature_id, "'" + "', '".join(tproperties_name_list) + "'")
-                select_query += "and ((period(pvalue_float) && period(timestampset('{0}'))) or (period(pvalue_text) && period(timestampset('{0}')))) ".format(
-                    "{" + ", ".join(datetimes) + "}")
+                select_query += ("where collection_id ='{0}' and mfeature_id='{1}' and tproperties_name in ({2}) "
+                                .format(collection_id, mfeature_id, "'" + "', '".join(tproperties_name_list) + "'"))
+                select_query += ("and ((period(pvalue_float) && period(timestampset('{0}'))) or (period(pvalue_text) && period(timestampset('{0}')))) "
+                                .format("{" + ", ".join(datetimes) + "}"))
                 select_query += "group by collection_id, mfeature_id, tproperties_name"
                 click.echo(select_query)
                 cursor.execute(select_query)
@@ -608,17 +607,20 @@ class ProcessMobilityData:
         select_query = "select temp1.collection_id, temp1.mfeature_id, COALESCE(temp2.datetime_group, temp3.max_datetime_group) "
         select_query += "from (select collection_id, mfeature_id "
         select_query += "from tproperties "
-        select_query += "where collection_id ='{0}' and mfeature_id='{1}' ".format(collection_id, mfeature_id)
+        select_query += ("where collection_id ='{0}' and mfeature_id='{1}' "
+                         .format(collection_id, mfeature_id))
         select_query += ") temp1 "
         select_query += "left outer join (select collection_id, mfeature_id, datetime_group "
         select_query += "from tproperties "
-        select_query += "where collection_id ='{0}' and mfeature_id='{1}' ".format(collection_id, mfeature_id)
-        select_query += "and (timestampset_eq(timestampset(timestamps(pvalue_float)), timestampset('{0}')) or timestampset_eq(timestampset(timestamps(pvalue_text)), timestampset('{0}'))) ".format(
-            "{" + ", ".join(datetimes) + "}")
+        select_query += ("where collection_id ='{0}' and mfeature_id='{1}' "
+                         .format(collection_id, mfeature_id))
+        select_query += ("and (timestampset_eq(timestampset(timestamps(pvalue_float)), timestampset('{0}')) or timestampset_eq(timestampset(timestamps(pvalue_text)), timestampset('{0}'))) "
+                        .format("{" + ", ".join(datetimes) + "}"))
         select_query += ") temp2 on temp1.collection_id = temp2.collection_id and temp1.mfeature_id = temp2.mfeature_id "
         select_query += "left outer join (select collection_id, mfeature_id, COALESCE(max(datetime_group), 0) + 1 as max_datetime_group "
         select_query += "from tproperties "
-        select_query += "where collection_id ='{0}' and mfeature_id='{1}' ".format(collection_id, mfeature_id)
+        select_query += ("where collection_id ='{0}' and mfeature_id='{1}' "
+                         .format(collection_id, mfeature_id))
         select_query += "group by collection_id, mfeature_id "
         select_query += ") temp3 on temp1.collection_id = temp3.collection_id and temp1.mfeature_id = temp3.mfeature_id "
 
@@ -631,30 +633,30 @@ class ProcessMobilityData:
     def get_velocity(self, collection_id, mfeature_id, tgeometry_id, datetime=None):
 
         form = "MTS"
-        key = "speed"
+        name = "velocity"
         cursor = self.connection.cursor()
         if datetime is None:
-            select_query = f"SELECT speed(tgeometry_property) AS speed FROM tgeometry WHERE collection_id = '{collection_id}' and mfeature_id = '{mfeature_id}' and tgeometry_id = '{tgeometry_id}'"
+            select_query = f"SELECT speed(tgeog_property) AS speed FROM tgeometry WHERE collection_id = '{collection_id}' and mfeature_id = '{mfeature_id}' and tgeometry_id = '{tgeometry_id}'"
         else:
-            select_query = f"SELECT valueAtTimestamp(speed(tgeometry_property), '{datetime}') AS speed, interpolation(speed(tgeometry_property)) AS interp FROM tgeometry WHERE collection_id = '{collection_id}' and mfeature_id = '{mfeature_id}' and tgeometry_id = '{tgeometry_id}'"
+            select_query = f"SELECT valueAtTimestamp(speed(tgeog_property), '{datetime}') AS speed, interpolation(speed(tgeog_property)) AS interp FROM tgeometry WHERE collection_id = '{collection_id}' and mfeature_id = '{mfeature_id}' and tgeometry_id = '{tgeometry_id}'"
         cursor.execute(select_query)
         rows = cursor.fetchall()
 
-        return self.to_tProperties(rows, key, form, datetime)
+        return self.to_tProperties(rows, name, form, datetime)
 
     def get_distance(self, collection_id, mfeature_id, tgeometry_id, datetime=None):
 
         form = "MTR"
-        key = "cumulativeLength"
+        name = "distance"
         cursor = self.connection.cursor()
         if datetime is None:
-            select_query = f"SELECT cumulativeLength(tgeometry_property) AS distance FROM tgeometry WHERE collection_id = '{collection_id}' and mfeature_id = '{mfeature_id}' and tgeometry_id = '{tgeometry_id}'"
+            select_query = f"SELECT cumulativeLength(tgeog_property) AS distance FROM tgeometry WHERE collection_id = '{collection_id}' and mfeature_id = '{mfeature_id}' and tgeometry_id = '{tgeometry_id}'"
         else:
-            select_query = f"SELECT valueAtTimestamp(cumulativeLength(tgeometry_property), '{datetime}') AS distance, interpolation(cumulativeLength(tgeometry_property)) AS interp FROM tgeometry WHERE collection_id = '{collection_id}' and mfeature_id = '{mfeature_id}' and tgeometry_id = '{tgeometry_id}'"
+            select_query = f"SELECT valueAtTimestamp(cumulativeLength(tgeog_property), '{datetime}') AS distance, interpolation(cumulativeLength(tgeog_property)) AS interp FROM tgeometry WHERE collection_id = '{collection_id}' and mfeature_id = '{mfeature_id}' and tgeometry_id = '{tgeometry_id}'"
         cursor.execute(select_query)
         rows = cursor.fetchall()
 
-        return self.to_tProperties(rows, key, form, datetime)
+        return self.to_tProperties(rows, name, form, datetime)
 
     def get_acceleration(self, collection_id, mfeature_id, tgeometry_id, datetime=None):
 
@@ -666,7 +668,7 @@ class ProcessMobilityData:
         }
         cursor = self.connection.cursor()
 
-        select_query = f"SELECT speed(tgeometry_property) AS speed FROM tgeometry WHERE collection_id = '{collection_id}' and mfeature_id = '{mfeature_id}' and tgeometry_id = '{tgeometry_id}'"
+        select_query = f"SELECT speed(tgeog_property) AS speed FROM tgeometry WHERE collection_id = '{collection_id}' and mfeature_id = '{mfeature_id}' and tgeometry_id = '{tgeometry_id}'"
         # select_query = f"SELECT cumulativeLength(tgeometry_property) AS distance FROM tgeometry WHERE collection_id = '{collection_id}' and mfeature_id = '{mfeature_id}' and tgeometry_id = '{tgeometry_id}'"
         cursor.execute(select_query)
         rows = cursor.fetchall()
@@ -680,16 +682,18 @@ class ProcessMobilityData:
 
             valueSequence = self.calculate_acceleration(each_values, each_time, datetime)
             if valueSequence.get("values"):
-                if interpolation == "Linear":
+                if datetime is not None:
+                    valueSequence["interpolation"] = "Discrete"
+                elif interpolation == "Linear":
                     valueSequence["interpolation"] = "Step"
                 else:
                     valueSequence["interpolation"] = interpolation
             tProperty["valueSequence"].append(valueSequence)
         return tProperty
 
-    def to_tProperties(self, rows, key, form, datetime):
+    def to_tProperties(self, rows, name, form, datetime):
         tProperty = {
-            "name": key,
+            "name": name,
             "type": "TReal",
             "form": form,
             "valueSequence": []
@@ -709,7 +713,7 @@ class ProcessMobilityData:
                 valueSequence = {
                     "datetimes": [format_datetime(datetime)],
                     "values": [each_row[0]],
-                    "interpolation": interpolation
+                    "interpolation": "Discrete"
                 }
             tProperty["valueSequence"].append(valueSequence)
         return tProperty

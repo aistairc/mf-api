@@ -866,13 +866,13 @@ class API:
             time = []
             lifespan = row[2]
             if lifespan is not None:
-                time.append(lifespan._lower.strftime("%Y/%m/%dT%H:%M:%SZ"))
-                time.append(lifespan._upper.strftime("%Y/%m/%dT%H:%M:%SZ"))
+                time.append(lifespan._lower.strftime("%Y-%m-%dT%H:%M:%SZ"))
+                time.append(lifespan._upper.strftime("%Y-%m-%dT%H:%M:%SZ"))
             else:
                 if extend_stbox is not None:
                     if extend_stbox.tmin is not None:
-                        time.append(extend_stbox.tmin.strftime("%Y/%m/%dT%H:%M:%SZ"))
-                        time.append(extend_stbox.tmax.strftime("%Y/%m/%dT%H:%M:%SZ"))
+                        time.append(extend_stbox.tmin.strftime("%Y-%m-%dT%H:%M:%SZ"))
+                        time.append(extend_stbox.tmax.strftime("%Y-%m-%dT%H:%M:%SZ"))
 
             collection['extent'] = {
                 'spatial': {
@@ -1064,13 +1064,13 @@ class API:
             time = []
             lifespan = row[2]
             if lifespan is not None:
-                time.append(lifespan._lower.strftime("%Y/%m/%dT%H:%M:%SZ"))
-                time.append(lifespan._upper.strftime("%Y/%m/%dT%H:%M:%SZ"))
+                time.append(lifespan._lower.strftime("%Y-%m-%dT%H:%M:%SZ"))
+                time.append(lifespan._upper.strftime("%Y-%m-%dT%H:%M:%SZ"))
             else:
                 if extend_stbox is not None:
                     if extend_stbox.tmin is not None:
-                        time.append(extend_stbox.tmin.strftime("%Y/%m/%dT%H:%M:%SZ"))
-                        time.append(extend_stbox.tmax.strftime("%Y/%m/%dT%H:%M:%SZ"))
+                        time.append(extend_stbox.tmin.strftime("%Y-%m-%dT%H:%M:%SZ"))
+                        time.append(extend_stbox.tmax.strftime("%Y-%m-%dT%H:%M:%SZ"))
 
             collection['extent'] = {
                 'spatial': {
@@ -1282,13 +1282,13 @@ class API:
             time = []
             lifespan = row[4]
             if lifespan is not None:
-                time.append(lifespan._lower.strftime("%Y/%m/%dT%H:%M:%SZ"))
-                time.append(lifespan._upper.strftime("%Y/%m/%dT%H:%M:%SZ"))
+                time.append(lifespan._lower.strftime("%Y-%m-%dT%H:%M:%SZ"))
+                time.append(lifespan._upper.strftime("%Y-%m-%dT%H:%M:%SZ"))
             else:
                 if extend_stbox is not None:
                     if extend_stbox.tmin is not None:
-                        time.append(extend_stbox.tmin.strftime("%Y/%m/%dT%H:%M:%SZ"))
-                        time.append(extend_stbox.tmax.strftime("%Y/%m/%dT%H:%M:%SZ"))
+                        time.append(extend_stbox.tmin.strftime("%Y-%m-%dT%H:%M:%SZ"))
+                        time.append(extend_stbox.tmax.strftime("%Y-%m-%dT%H:%M:%SZ"))
             mfeature['time'] = time
 
             if 'crs' not in mfeature:
@@ -1524,13 +1524,13 @@ class API:
             time = []
             lifespan = row[4]
             if lifespan is not None:
-                time.append(lifespan._lower.strftime("%Y/%m/%dT%H:%M:%SZ"))
-                time.append(lifespan._upper.strftime("%Y/%m/%dT%H:%M:%SZ"))
+                time.append(lifespan._lower.strftime("%Y-%m-%dT%H:%M:%SZ"))
+                time.append(lifespan._upper.strftime("%Y-%m-%dT%H:%M:%SZ"))
             else:
                 if extend_stbox is not None:
                     if extend_stbox.tmin is not None:
-                        time.append(extend_stbox.tmin.strftime("%Y/%m/%dT%H:%M:%SZ"))
-                        time.append(extend_stbox.tmax.strftime("%Y/%m/%dT%H:%M:%SZ"))
+                        time.append(extend_stbox.tmin.strftime("%Y-%m-%dT%H:%M:%SZ"))
+                        time.append(extend_stbox.tmax.strftime("%Y-%m-%dT%H:%M:%SZ"))
             mfeature['time'] = time
 
             if 'crs' not in mfeature:

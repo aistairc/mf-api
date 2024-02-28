@@ -197,10 +197,8 @@ def collections(collection_id=None):
             api_.get_collection(request, collection_id))
 
 
-@BLUEPRINT.route('/collections/<path:collection_id>/items',
-                 methods=['GET', 'POST'])
-@BLUEPRINT.route('/collections/<path:collection_id>/items/<item_id>',
-                 methods=['GET', 'DELETE'])
+@BLUEPRINT.route('/collections/<path:collection_id>/items', methods=['GET', 'POST'])
+@BLUEPRINT.route('/collections/<path:collection_id>/items/<item_id>', methods=['GET', 'DELETE'])
 def collection_items(collection_id, item_id=None):
     """
     OGC API collections items endpoint
@@ -216,13 +214,11 @@ def collection_items(collection_id, item_id=None):
             return get_response(
                 api_.get_collection_items(request, collection_id))
         elif request.method == 'POST':  # filter or manage items
-            return get_response(api_.manage_collection_item(request, 'create',
-                                                            collection_id))
+            return get_response(api_.manage_collection_item(request, 'create', collection_id))
 
     elif request.method == 'DELETE':
         return get_response(
-            api_.manage_collection_item(request, 'delete',
-                                        collection_id, item_id))
+            api_.manage_collection_item(request, 'delete', collection_id, item_id))
     else:
         return get_response(
             api_.get_collection_item(request, collection_id, item_id))
@@ -247,13 +243,12 @@ def collection_items_tgeometries(collection_id, item_id, tGeometry_id=None):
             return get_response(
                 api_.get_collection_items_tGeometry(request, collection_id, item_id))
         elif request.method == 'POST':  # filter or manage items
-            return get_response(api_.manage_collection_item_tGeometry(request, 'create',
-                                                                      collection_id, item_id))
+            return get_response(
+                api_.manage_collection_item_tGeometry(request, 'create',collection_id, item_id))
 
     elif request.method == 'DELETE':
         return get_response(
-            api_.manage_collection_item_tGeometry(request, 'delete',
-                                                  collection_id, item_id, tGeometry_id))
+            api_.manage_collection_item_tGeometry(request, 'delete', collection_id, item_id, tGeometry_id))
 
 
 @BLUEPRINT.route('/collections/<path:collection_id>/items/<item_id>/tgsequence/<tGeometry_id>/velocity',

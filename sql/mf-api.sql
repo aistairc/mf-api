@@ -28,7 +28,8 @@ CREATE TABLE public.tgeometry
     collection_id      uuid NOT NULL,
     mfeature_id        uuid NOT NULL,
     tgeometry_id       uuid DEFAULT uuid_generate_v4(),
-    tgeometry_property tgeogpoint NULL,
+    tgeometry_property tgeompoint NULL,
+    tgeog_property     tgeogpoint NULL,
     PRIMARY KEY (collection_id, mfeature_id, tgeometry_id),
     FOREIGN KEY (collection_id, mfeature_id) REFERENCES mfeature (collection_id, mfeature_id)
 );
@@ -42,7 +43,7 @@ CREATE TABLE public.tproperties
     tproperties_name text NOT NULL,
     datetime_group   int4 NOT NULL,
     tproperty        jsonb NULL,
-    pvalue_float     tfloat NULL,
+    pvalue_float      tfloat NULL,
     pvalue_text      ttext NULL,
 
     PRIMARY KEY (collection_id, mfeature_id, tproperties_name, datetime_group),
